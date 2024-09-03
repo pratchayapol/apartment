@@ -19,5 +19,5 @@ COPY ../src /var/www/html
 RUN chmod -R 777 /var/www/html
 
 
-# Expose ports 80 and 443
-EXPOSE 80 443
+# Expose ports 80
+EXPOSE 80
