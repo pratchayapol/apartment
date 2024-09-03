@@ -7,6 +7,7 @@ services:
     restart: unless-stopped
     ports:
       - "100:80"
+      - "443:443"
     volumes:
       - web_data:/var/www/html
       - ./src:/var/www/html
