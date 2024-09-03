@@ -6,7 +6,7 @@ services:
       dockerfile: ./web/Dockerfile
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8090:80"
     volumes:
       - web_data:/var/www/html
       - ./src:/var/www/html
