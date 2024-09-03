@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
 COPY ../src /var/www/html
 
 RUN chmod -R 777 /var/www/html
+# RUN chmod -R 777 /var/www/html/PDF
 
 # Expose ports 80 and 443
 EXPOSE 80 443
