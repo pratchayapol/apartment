@@ -21,4 +21,4 @@ RUN apt-get update && apt-get install -y \
 # Set permissions for /var/www/html (use chmod)
 RUN chmod -R 777 /var/www/html
 
-COPY php.ini /usr/local/etc/php/
+# COPY php.ini /usr/local/etc/php/
