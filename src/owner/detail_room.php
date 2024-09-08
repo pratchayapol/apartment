@@ -79,7 +79,7 @@ if (isset($_GET['add_e_id'])) {
 }
 
 
-if (isset($_POST['edit_w_id'])) {
+if (isset($_GET['edit_w_id'])) {
     $idRoom = $_POST['id_room'];
     $editId = $_POST['edit_w_id'];
     $numberWaterMeter = $_POST['number_water_meter'];
@@ -116,9 +116,9 @@ if (isset($_POST['edit_w_id'])) {
     $stmt->close();
 }
 
-if (isset($_POST['edit_e_id'])) {
+if (isset($_GET['edit_e_id'])) {
     $idRoom = $_POST['id_room'];
-    $editId1 = $_POST['edit_e_id'];
+    $editId1 = $_GET['edit_e_id'];
     $numberelectricityMeter = $_POST['number_electricity_meter'];
 
     // ทำการอัพเดตข้อมูลในฐานข้อมูล
@@ -157,9 +157,6 @@ if (isset($_POST['edit_e_id'])) {
 // ลบมิเตอร์น้ำ
 if (isset($_GET['del_w_id'])) {
     $id_water_meter = $_GET['del_w_id'];
-
-
-
     // เตรียมคำสั่ง SQL
     $sql = "DELETE FROM water_meter WHERE id_water_meter = ?";
     $stmt = $conn->prepare($sql);
@@ -183,7 +180,7 @@ if (isset($_GET['del_w_id'])) {
                 });
             }, 100); // Adjust timeout duration if needed
         </script>
-<?php
+    <?php
     } else {
         echo "Execute failed: " . $stmt->error;
     }
@@ -192,6 +189,43 @@ if (isset($_GET['del_w_id'])) {
     $stmt->close();
 }
 
+// ลบมิเตอร์ไฟฟ้า
+if (isset($_GET['del_e_id'])) {
+    $id_electricity_meter = $_GET['del_e_id'];
+
+
+
+    // เตรียมคำสั่ง SQL
+    $sql = "DELETE FROM electricity_meter WHERE id_electricity_meter = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $id_electricity_meter);
+
+    if ($stmt->execute()) {
+    ?>
+        <script>
+            setTimeout(function() {
+                Swal.fire({
+                    title: '<div class="t1">ลบมิเตอร์ไฟฟ้าสำเร็จ</div>',
+                    icon: 'success',
+                    confirmButtonText: '<div class="text t1">ตกลง</div>',
+                    allowOutsideClick: false, // Disable clicking outside popup to close
+                    allowEscapeKey: false, // Disable ESC key to close
+                    allowEnterKey: false // Disable Enter key to close
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "?id_room=<?= $id_room ?>";
+                    }
+                });
+            }, 100); // Adjust timeout duration if needed
+        </script>
+<?php
+    } else {
+        echo "Execute failed: " . $stmt->error;
+    }
+
+    // ปิดคำสั่ง
+    $stmt->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -539,7 +573,7 @@ if (isset($_GET['del_w_id'])) {
                                                                 </script>
 
 
-                                                                <a href="delete_electricity_meter.php?id=<?= $row5['id_electricity_meter']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('ยืนยันการลบข้อมูล?');">ลบ</a>
+                                                                <a href="?id_room=<?= $id_room ?>&del_e_id=<?= $row5['id_electricity_meter'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('ยืนยันการลบข้อมูล?');">ลบ</a>
                                                             </td>
                                                         </tr>
                                                     <?php } ?>
