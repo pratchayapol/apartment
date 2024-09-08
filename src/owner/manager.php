@@ -1,7 +1,70 @@
 <?php
 session_start();
 include "../config_db.php";
+// ลบห้อง
+if (isset($_GET['del_id_room'])) {
+    $id_room = $_GET['del_id_room'];
 
+    $sql = "SELECT * FROM room WHERE id_room = $id_room";
+    $result = $conn->query($sql);
+
+    $row = $result->fetch_assoc();
+    $number_room = $row['number_room'];
+    // เริ่มทำ Transaction เพื่อให้การลบข้อมูลเป็น Atomic
+    $conn->begin_transaction();
+
+    try {
+        // ลบข้อมูลจากตาราง water_meter โดยใช้ id_room
+        $sql1 = "DELETE FROM water_meter WHERE number_room = ?";
+        $stmt1 = $conn->prepare($sql1);
+        $stmt1->bind_param("i", $number_room);
+        $stmt1->execute();
+
+        // ลบข้อมูลจากตาราง electricity_meter โดยใช้ id_room
+        $sql2 = "DELETE FROM electricity_meter WHERE number_room = ?";
+        $stmt2 = $conn->prepare($sql2);
+        $stmt2->bind_param("i", $number_room);
+        $stmt2->execute();
+
+        // ลบข้อมูลจากตาราง room
+        $sql3 = "DELETE FROM room WHERE id_room = ?";
+        $stmt3 = $conn->prepare($sql3);
+        $stmt3->bind_param("i", $id_room);
+        $stmt3->execute();
+
+        // Commit transaction
+        $conn->commit();
+?>
+        <script>
+            setTimeout(function() {
+                Swal.fire({
+                    title: '<div class="t1">ลบห้องสำเร็จ</div>',
+                    icon: 'success',
+                    confirmButtonText: '<div class="text t1">ตกลง</div>',
+                    allowOutsideClick: false, // Disable clicking outside popup to close
+                    allowEscapeKey: false, // Disable ESC key to close
+                    allowEnterKey: false // Disable Enter key to close
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "manager";
+                    }
+                });
+            }, 100); // Adjust timeout duration if needed
+        </script>
+    <?php
+    } catch (Exception $e) {
+        // ถ้ามีข้อผิดพลาดเกิดขึ้น ยกเลิกการทำงานทั้งหมด (rollback)
+        $conn->rollback();
+        echo "เกิดข้อผิดพลาดในการลบข้อมูล: " . $e->getMessage();
+    }
+
+    // ปิดการเชื่อมต่อฐานข้อมูล
+    $conn->close();
+}
+
+
+
+// เพิ่มห้อง
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // รับค่าจากฟอร์ม
     $room_code = $_POST['room_code'];
@@ -39,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Commit transaction
         $conn->commit();
-        ?>
+    ?>
         <script>
             setTimeout(function() {
                 Swal.fire({
@@ -54,9 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         window.location.href = "manager";
                     }
                 });
-            }, 1000); // Adjust timeout duration if needed
+            }, 100); // Adjust timeout duration if needed
         </script>
-    <?php
+<?php
     } catch (Exception $e) {
         // ถ้ามีข้อผิดพลาดเกิดขึ้น ยกเลิกการทำงานทั้งหมด (rollback)
         $conn->rollback();
@@ -86,7 +149,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
 
     <style>
         body {
@@ -198,14 +260,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <h5 class="card-title">ห้อง <?= $row['number_room']; ?></h5> <!-- ใช้ฟิลด์ที่เหมาะสม -->
                                         <p class="card-text">สถานะ: <?= $row['status_room']; ?></p> <!-- ใช้ฟิลด์สถานะ -->
                                         <a href="detail_room?id_room=<?= $row['id_room']; ?>" class="btn btn-primary">จัดการข้อมูล</a>
+                                        <a href="#" class="btn btn-danger" onclick="confirmDelete(<?= $row['id_room']; ?>)">ลบห้อง</a>
+
+                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                        <script>
+                                            function confirmDelete(id_room) {
+                                                Swal.fire({
+                                                    title: 'คุณแน่ใจหรือไม่?',
+                                                    text: "คุณต้องการลบห้องนี้หรือไม่",
+                                                    icon: 'warning',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#3085d6',
+                                                    cancelButtonColor: '#d33',
+                                                    confirmButtonText: 'ใช่, ลบเลย!',
+                                                    cancelButtonText: 'ยกเลิก'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        // ดำเนินการลบหลังจากผู้ใช้ยืนยัน
+                                                        window.location.href = "?del_id_room=" + id_room;
+                                                    }
+                                                });
+                                            }
+                                        </script>
                                     </div>
                                 </div>
                             </div>
-                    <?php
+                        <?php
                             $count++;
                         }
                     } else {
-                        echo "<p>ไม่มีข้อมูลห้องพัก</p>";
+                        ?>
+                        <div class="card text-white bg-danger mb-12">
+
+                            <div class="card-body">
+                                <center>
+                                    <h1 class="card-title">!!!  ไม่พบข้อมูลหอพัก !!!</h1>
+                                </center>
+                            </div>
+                        </div>
+                    <?php
                     }
                     ?>
                 </div> <!-- ปิด row -->
