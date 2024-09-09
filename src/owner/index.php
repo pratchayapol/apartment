@@ -42,13 +42,13 @@ include "../config_db.php";
                 </div>
 
                 <!-- Card for Reports -->
-                <div class="card mb-4">
+                <!-- <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title">รายงาน</h5>
                         <p class="card-text">ดูรายงานการจ่ายเงินและข้อมูลสำคัญอื่นๆ ได้ที่นี่</p>
                         <a href="report" class="btn btn-primary">ไปที่รายงาน</a>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Card for Settings -->
                 <div class="card mb-4">

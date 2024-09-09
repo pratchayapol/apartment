@@ -12,17 +12,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = $_POST['password'];
     $user_type = $_POST['user_type'];
 
-    $img_profile = "null.png";
+
     // เข้ารหัสรหัสผ่านก่อนเก็บลงฐานข้อมูล
     $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
     if ($user_type == "tenant") {
         // SQL สำหรับเพิ่มข้อมูลผู้ใช้ลงฐานข้อมูล
-        $sql = "INSERT INTO tenant (first_name, last_name, tel, email, password, img_profile) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO tenant (first_name, last_name, tel, email, password) VALUES (?, ?, ?, ?, ?)";
 
         // ใช้ Prepared Statement เพื่อป้องกัน SQL Injection
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssss", $first_name, $last_name, $tel, $email, $hashed_password, $img_profile);
+        $stmt->bind_param("sssss", $first_name, $last_name, $tel, $email, $hashed_password);
 
         if ($stmt->execute()) {
 ?>
@@ -68,11 +68,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $conn->close();
     } else if ($user_type == "owner") {
         // SQL สำหรับเพิ่มข้อมูลผู้ใช้ลงฐานข้อมูล
-        $sql = "INSERT INTO owner (first_name, last_name, tel, email, password, img_profile) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO owner (first_name, last_name, tel, email, password) VALUES (?, ?, ?, ?, ?)";
 
         // ใช้ Prepared Statement เพื่อป้องกัน SQL Injection
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssss", $first_name, $last_name, $tel, $email, $hashed_password, $img_profile);
+        $stmt->bind_param("sssss", $first_name, $last_name, $tel, $email, $hashed_password);
 
         if ($stmt->execute()) {
         ?>

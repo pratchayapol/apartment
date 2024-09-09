@@ -72,6 +72,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $electric_meter = $_POST['electric_meter'];
     $tenant = $_POST['tenant'];
     $room_status = $_POST['room_status'];
+    $detail_room = $_POST['detail_room'];
+    $charge_room = $_POST['charge_room'];
 
 
 
@@ -94,10 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id_electricity_meter = $conn->insert_id;  // ดึง id ของ electricity_meter ล่าสุด
 
         // Insert ข้อมูลเข้าตาราง room โดยใช้ FK จาก id_water_meter และ id_electricity_meter ที่เพิ่งได้มา
-        $sql3 = "INSERT INTO room (number_room, id_electricity_meter, id_water_meter, id_tenant, status_room) 
-                 VALUES (?, ?, ?, ?, ?)";
+        $sql3 = "INSERT INTO room (number_room, id_electricity_meter, id_water_meter, id_tenant, status_room, detail_room, charge_room) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt3 = $conn->prepare($sql3);
-        $stmt3->bind_param("siiis", $room_code, $id_electricity_meter, $id_water_meter, $tenant, $room_status);
+        $stmt3->bind_param("siiissi", $room_code, $id_electricity_meter, $id_water_meter, $tenant, $room_status, $detail_room, $charge_room);
         $stmt3->execute();
 
         // Commit transaction
@@ -145,10 +147,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300&display=swap" rel="stylesheet">
 
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <style>
         body {
@@ -181,9 +179,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="addRoomModalLabel">เพิ่มข้อมูลห้องพัก</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
+                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                             
                             </div>
                             <div class="modal-body">
                                 <form id="addRoomForm" method="POST" action="">
@@ -193,11 +190,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </div>
                                     <div class="form-group">
                                         <label for="water_meter">เลขมิเตอร์น้ำล่าสุด</label>
-                                        <input type="number" class="form-control" id="water_meter" name="water_meter" required>
+                                        <input type="number" class="form-control" id="water_meter" name="water_meter" min="0" max="9999" required oninput="limitInput(this)">
                                     </div>
                                     <div class="form-group">
                                         <label for="electric_meter">เลขมิเตอร์ไฟล่าสุด</label>
-                                        <input type="number" class="form-control" id="electric_meter" name="electric_meter" required>
+                                        <input type="number" class="form-control" id="electric_meter" name="electric_meter" min="0" max="9999" required oninput="limitInput(this)">
                                     </div>
                                     <div class="form-group">
                                         <label for="tenant">ผู้เช่า</label>
@@ -230,7 +227,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <option value="กำลังเช่าอยู่">กำลังเช่าอยู่</option>
                                         </select>
                                     </div>
-                                    <button type="submit" class="btn btn-success">บันทึกข้อมูล</button>
+                                    <div class="form-group">
+                                        <label for="editDetailRoom">ประเภทห้อง</label>
+                                        <select class="form-control" name="detail_room" required>
+                                            <option value="ห้องพัดลม">ห้องพัดลม</option>
+                                            <option value="ห้องแอร์">ห้องแอร์</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editChargeRoom">ค่าเช่าเฉพาะห้อง</label>
+                                        <input type="number" class="form-control" name="charge_room">
+                                    </div>
+                                    <br>
+                                    <center>
+                                        <button type="submit" class="btn btn-success">บันทึกข้อมูล</button>
+                                    </center>
+
                                 </form>
                             </div>
                         </div>
@@ -294,7 +306,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <div class="card-body">
                                 <center>
-                                    <h1 class="card-title">!!!  ไม่พบข้อมูลหอพัก !!!</h1>
+                                    <h1 class="card-title">!!! ไม่พบข้อมูลหอพัก !!!</h1>
                                 </center>
                             </div>
                         </div>
@@ -305,10 +317,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
     </div>
-
+    <script>
+            function limitInput(input) {
+                if (input.value.length > 4) {
+                    input.value = input.value.slice(0, 4);
+                }
+            }
+        </script>
     <!-- Bootstrap 5 JS (Optional, for features like modals or tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 
 </html>

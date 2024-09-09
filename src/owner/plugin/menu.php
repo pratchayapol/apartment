@@ -13,9 +13,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="manager">การจัดการห้อง</a>
                     </li>
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="report">รายงาน</a>
-                    </li>
+                    </li> -->
                     <li class="nav-item">
                         <a class="nav-link" href="setting">ตั้งค่า</a>
                     </li>

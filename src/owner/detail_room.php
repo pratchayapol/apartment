@@ -8,6 +8,7 @@ if (isset($_GET['id_room'])) {
     $id_room = $_GET['id_room'];
 }
 
+//เพิ่มเลขมิเตอร์น้ำ
 if (isset($_GET['add_w_id'])) {
 
     $number_room10 = $_GET['add_w_id'];
@@ -43,6 +44,8 @@ if (isset($_GET['add_w_id'])) {
     $conn->close();
 }
 
+
+//เพิ่มเลขมิเตอร์ไฟฟ้า
 if (isset($_GET['add_e_id'])) {
 
     $number_room10 = $_GET['add_e_id'];
@@ -79,6 +82,7 @@ if (isset($_GET['add_e_id'])) {
 }
 
 
+//แก้ไขเลขมิเตอร์น้ำ
 if (isset($_GET['edit_w_id'])) {
     $idRoom = $_POST['id_room'];
     $editId = $_POST['edit_w_id'];
@@ -116,6 +120,7 @@ if (isset($_GET['edit_w_id'])) {
     $stmt->close();
 }
 
+//แก้ไขเลขมิเตอร์ไฟฟ้า
 if (isset($_GET['edit_e_id'])) {
     $idRoom = $_POST['id_room'];
     $editId1 = $_GET['edit_e_id'];
@@ -189,12 +194,10 @@ if (isset($_GET['del_w_id'])) {
     $stmt->close();
 }
 
+
 // ลบมิเตอร์ไฟฟ้า
 if (isset($_GET['del_e_id'])) {
     $id_electricity_meter = $_GET['del_e_id'];
-
-
-
     // เตรียมคำสั่ง SQL
     $sql = "DELETE FROM electricity_meter WHERE id_electricity_meter = ?";
     $stmt = $conn->prepare($sql);
@@ -393,15 +396,13 @@ if (isset($_GET['del_e_id'])) {
                                                     <div class="modal-content">
                                                         <div class="modal-header">
                                                             <h5 class="modal-title" id="exampleModalLabel">กรอกเลขมิเตอร์น้ำ</h5>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
+                                                            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                                                         </div>
                                                         <div class="modal-body">
                                                             <form action="?id_room=<?= $id_room ?>&add_w_id=<?= $row['number_room']; ?>" method="post">
                                                                 <div class="form-group">
                                                                     <label for="meterNumber">เลขมิเตอร์น้ำ:</label>
-                                                                    <input type="text" class="form-control" id="meterNumber" name="meterNumber" required>
+                                                                    <input type="number" class="form-control" id="meterNumber" name="meterNumber" min="0" max="9999" required oninput="limitInput(this)">
                                                                 </div><br>
                                                                 <center><button type="submit" name="submit" class="btn btn-primary">บันทึกข้อมูล</button></center>
                                                             </form>
@@ -495,15 +496,13 @@ if (isset($_GET['del_e_id'])) {
                                                     <div class="modal-content">
                                                         <div class="modal-header">
                                                             <h5 class="modal-title" id="exampleModalLabel">กรอกเลขมิเตอร์ไฟฟ้า</h5>
-                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                <span aria-hidden="true">&times;</span>
-                                                            </button>
+                                                            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
                                                         </div>
                                                         <div class="modal-body">
                                                             <form action="?id_room=<?= $id_room ?>&add_e_id=<?= $row['number_room']; ?>" method="post">
                                                                 <div class="form-group">
                                                                     <label for="meterNumber">เลขมิเตอร์ไฟฟ้า:</label>
-                                                                    <input type="text" class="form-control" id="meterNumber" name="meterNumber" required>
+                                                                    <input type="number" class="form-control" id="meterNumber" name="meterNumber" min="0" max="9999" required oninput="limitInput(this)">
                                                                 </div><br>
                                                                 <center><button type="submit" name="submit" class="btn btn-primary">บันทึกข้อมูล</button></center>
                                                             </form>
@@ -593,7 +592,13 @@ if (isset($_GET['del_e_id'])) {
                 </div>
             </div>
         </div>
-
+        <script>
+            function limitInput(input) {
+                if (input.value.length > 4) {
+                    input.value = input.value.slice(0, 4);
+                }
+            }
+        </script>
         <!-- Bootstrap 5 JS (Optional, for features like modals or tooltips) -->
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
