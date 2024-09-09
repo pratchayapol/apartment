@@ -242,10 +242,30 @@ if (isset($_GET['del_e_id'])) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
         body {
             font-family: 'Noto Sans Thai', sans-serif;
+        }
+
+        .pdf-icons {
+            display: flex;
+            gap: 10px;
+            /* ระยะห่างระหว่างไอคอน */
+            flex-wrap: wrap;
+            /* จัดให้แถวต่อไปถ้ามีไอคอนเยอะเกิน */
+        }
+
+        .pdf-icon {
+            text-decoration: none;
+            color: white;
+            /* สีของไอคอน */
+        }
+
+        .pdf-icon i {
+            margin-right: 5px;
+            /* ระยะห่างระหว่างไอคอนกับข้อความ */
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -272,11 +292,19 @@ if (isset($_GET['del_e_id'])) {
                     <?php
                     if ($result->num_rows > 0) {
                         $count = 0;
+                        //ข้อมูลพื้นฐาน
+                        $sql0 = "SELECT * FROM apartment_data";
+                        $result0 = $conn->query($sql0);
+                        $row0 = $result0->fetch_assoc();
+
+
+
 
                         $row = $result->fetch_assoc();
 
                         $id_tenant = $row['id_tenant'];
                         $number_room = $row['number_room'];
+                        $charge_room = $row['charge_room'];
                         // ข้อมูลผู้เช่า
                         $sql1 = "SELECT * FROM tenant WHERE id_tenant = $id_tenant";
                         $result1 = $conn->query($sql1);
@@ -366,8 +394,20 @@ if (isset($_GET['del_e_id'])) {
                             $def1 = "ไฟฟ้าที่ใช้ไปในเดือนนี้: " . $difference1 . " หน่วย";
                         } else {
                             $def1 = "ไม่สามารถคำนวณค่าต่างได้ เนื่องจากข้อมูลไม่ครบถ้วน";
+                            $difference1 = "0";
                         }
 
+
+                        // คำนวณค่าน้ำและค่าไฟฟ้า
+                        $water_cost = $difference * $row0['w_bath_unit']; // ค่าน้ำ
+                        $electricity_cost = $difference1 * $row0['e_bath_unit']; // ค่าไฟฟ้า
+
+                        // ผลรวมทั้งหมด
+                        $total_cost = $charge_room + $water_cost + $electricity_cost;
+
+                        if (($water_cost > 0) && ($electricity_cost > 0)) {
+                            $button_send = "true";
+                        }
                     ?>
                         <div class="container mt-4">
                             <div class="row">
@@ -379,9 +419,68 @@ if (isset($_GET['del_e_id'])) {
                                             <p class="card-text"> - ผู้เช่าห้อง : <?= $full_name ?></p>
                                             <p class="card-text"> - เลขมิเตอร์น้ำก่อนหน้า : <?= $number_water_meter_second_last ?> เลขมิเตอร์น้ำล่าสุด : <?= $number_water_meter_last ?> <?= $def ?></p>
                                             <p class="card-text"> - เลขมิเตอร์ไฟฟ้าก่อนหน้า : <?= $number_electricity_meter_second_last ?> เลขมิเตอร์ไฟฟ้าล่าสุด : <?= $number_electricity_meter_last ?> <?= $def1 ?></p>
+                                            <p class="card-text"> - ค่าห้อง : <?= $charge_room . "+ ค่าน้ำ ( " . $difference ?> X <?= $row0['w_bath_unit'] . ' ) + ค่าไฟฟ้า ( ' . $difference1 . " X " . $row0['e_bath_unit'] . " ) รวมค่าห้องทั้งสิ้น " . $total_cost . " บาท" ?></p>
+
+                                            <!-- Section for PDF icons -->
+                                            <div class="pdf-icons mt-3">
+                                                <p class="card-text">- ใบแจ้งหนี้ย้อนหลัง 6 เดือน: </p>
+                                                <?php
+                                                function thaiDate($date)
+                                                {
+                                                    $thai_month_arr = array(
+                                                        "มกราคม",
+                                                        "กุมภาพันธ์",
+                                                        "มีนาคม",
+                                                        "เมษายน",
+                                                        "พฤษภาคม",
+                                                        "มิถุนายน",
+                                                        "กรกฎาคม",
+                                                        "สิงหาคม",
+                                                        "กันยายน",
+                                                        "ตุลาคม",
+                                                        "พฤศจิกายน",
+                                                        "ธันวาคม"
+                                                    );
+
+                                                    // แยกส่วนของเดือนและปีจากวันที่ที่ได้รับมา
+                                                    $month = date('n', strtotime($date)); // เอาเฉพาะตัวเลขเดือน (1-12)
+                                                    $year = date('Y', strtotime($date)) + 543; // เปลี่ยนปี ค.ศ. เป็น พ.ศ.
+
+                                                    // คืนค่าเดือนภาษาไทยและปี พ.ศ.
+                                                    return $thai_month_arr[$month - 1] . ' ' . $year;
+                                                }
+                                                for ($i = 0; $i < 6; $i++) {
+                                                    // สร้างชื่อเดือนย้อนหลังจากเดือนปัจจุบัน
+                                                    $month = date('F Y', strtotime("-$i month"));
+                                                    
+
+
+                                                    // Display PDF icons with links
+                                                ?><a href='../PDF/pdf?email=<?=$row1['email']?>&id_room=<?=$row['number_room']?>&f_name=<?=$full_name?>&wc=<?=$water_cost?>&we=<?=$electricity_cost?>&cr=<?=$charge_room?>&total=<?=$total_cost?>&my=<?=thaiDate($month)?>&name_ap=<?=$row0['name_apartment']?>&wc1=<?= $number_water_meter_second_last ?>&wc2=<?= $number_water_meter_last ?>&wc3=<?=$difference?>&we1=<?=$number_electricity_meter_second_last?>&we2=<?= $number_electricity_meter_last ?>&we3=<?=$difference1?>&wc4=<?= $row0['w_bath_unit']?>&we4=<?=$row0['e_bath_unit']?>' target='_blank' class='pdf-icon'>
+                                                        <i class='fas fa-file-pdf'></i> <?= thaiDate($month) ?>
+                                                    </a>
+                                                <?php
+                                                }
+                                                ?>
+                                            </div>
+                                            <div class="pdf-icons mt-3">
+                                                <p class="card-text">- ส่ง mail ใบแจ้งหนี้เดือนปัจจุบัน: </p>
+                                                <?php
+                                                $month1 = date('F Y');
+
+                                                if (($water_cost > 0) && ($electricity_cost > 0)) {
+                                                ?>
+                                                    <a href='../send_email?email=<?= $row1['email'] ?>&id_room=<?= $row['number_room'] ?>&f_name=<?= $full_name ?>&wc=<?= $water_cost ?>&we=<?= $electricity_cost ?>&cr=<?= $charge_room ?>&total=<?= $total_cost ?>' target='_blank' class='mail-icon'>
+                                                        <i class='fas fa-envelope'></i> <?= thaiDate($month1); ?>
+                                                    </a>
+                                                <?php
+                                                }
+                                                ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+
 
                                 <!-- ข้อมูลมิเตอร์น้ำและไฟฟ้า -->
                                 <div class="col-md-6 mb-3">
@@ -426,7 +525,7 @@ if (isset($_GET['del_e_id'])) {
                                                 <tbody>
                                                     <?php
                                                     // ตัวอย่างการ query ข้อมูลมิเตอร์น้ำ
-                                                    $query4 = "SELECT id_water_meter, number_water_meter, save_water_meter FROM water_meter WHERE number_room = $number_room ORDER BY id_water_meter DESC LIMIT 12";
+                                                    $query4 = "SELECT id_water_meter, number_water_meter, save_water_meter FROM water_meter WHERE number_room = $number_room ORDER BY id_water_meter DESC LIMIT 6";
                                                     $result4 = $conn->query($query4);
                                                     while ($row4 = $result4->fetch_assoc()) {
                                                     ?>
@@ -527,7 +626,7 @@ if (isset($_GET['del_e_id'])) {
                                                 <tbody>
                                                     <?php
                                                     // ตัวอย่างการ query ข้อมูลมิเตอร์ไฟฟ้า
-                                                    $query5 = "SELECT id_electricity_meter, number_electricity_meter, save_electricity_meter FROM electricity_meter WHERE number_room = $number_room ORDER BY id_electricity_meter DESC LIMIT 12";
+                                                    $query5 = "SELECT id_electricity_meter, number_electricity_meter, save_electricity_meter FROM electricity_meter WHERE number_room = $number_room ORDER BY id_electricity_meter DESC LIMIT 6";
                                                     $result5 = $conn->query($query5);
                                                     while ($row5 = $result5->fetch_assoc()) {
                                                     ?>
