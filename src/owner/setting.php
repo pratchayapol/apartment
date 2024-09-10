@@ -8,19 +8,20 @@ if (isset($_GET['update']) && $_GET['update'] == "TRUE") {
     $address = $_POST['address'];
     $w_bath_unit = $_POST['w_bath_unit'];
     $e_bath_unit = $_POST['e_bath_unit'];
+    $comment = $_POST['comment'];
 
     // ตรวจสอบว่าค่าที่ได้รับไม่ว่างเปล่า
-    if (!empty($id_apartment) && !empty($name_apartment) && !empty($address) && !empty($w_bath_unit) && !empty($e_bath_unit)) {
+    if (!empty($id_apartment) && !empty($name_apartment) && !empty($address) && !empty($w_bath_unit) && !empty($e_bath_unit) && !empty($comment)) {
         // สร้าง SQL สำหรับอัปเดตข้อมูล
         $sql = "UPDATE apartment_data 
-                SET name_apartment = ?, address = ?, w_bath_unit = ?, e_bath_unit = ? 
+                SET name_apartment = ?, address = ?, w_bath_unit = ?, e_bath_unit = ?, comment = ? 
                 WHERE id_apartment = ?";
 
         // เตรียม statement
         $stmt = $conn->prepare($sql);
         if ($stmt) {
             // bind ค่า
-            $stmt->bind_param("ssdsi", $name_apartment, $address, $w_bath_unit, $e_bath_unit, $id_apartment);
+            $stmt->bind_param("sssssi", $name_apartment, $address, $w_bath_unit, $e_bath_unit, $comment, $id_apartment);
 
             // execute statement
             if ($stmt->execute()) {
@@ -37,14 +38,13 @@ if (isset($_GET['update']) && $_GET['update'] == "TRUE") {
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 window.location.href = "setting";
-
                             }
                         });
                     }, 100); // Adjust timeout duration if needed
                 </script>
-        <?php
+<?php
             } else {
-                echo "เกิดข้อผิดพลาดในการอัปเดตข้อมูล: " . $conn->error;
+                echo "เกิดข้อผิดพลาดในการอัปเดตข้อมูล: " . $stmt->error;
             }
 
             // ปิด statement
@@ -56,6 +56,7 @@ if (isset($_GET['update']) && $_GET['update'] == "TRUE") {
         echo "กรุณากรอกข้อมูลให้ครบทุกช่อง";
     }
 }
+
 
 // ตรวจสอบว่ามีการกดปุ่ม submit หรือไม่
 if (isset($_POST['submit1'])) {
@@ -229,15 +230,53 @@ if (isset($_GET['del_id'])) {
                                     <p class="card-text"> - ที่อยู่หอพัก : <?= $row['address']; ?></p>
                                     <p class="card-text"> - ค่าน้ำ : 1 UNIT : <?= $row['w_bath_unit']; ?> บาท</p>
                                     <p class="card-text"> - ค่าไฟฟ้า : 1 UNIT : <?= $row['e_bath_unit']; ?> บาท</p>
+                                    <p class="card-text"> - หมายเหตุ : <?= $row['comment']; ?></p>
 
                                     <!-- ปุ่มแก้ไขข้อมูล -->
-                                    <center><button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal">
+                                    <center><button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editModal1">
                                             แก้ไขข้อมูล
                                         </button></center>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Bootstrap Modal สำหรับแก้ไขข้อมูล -->
+                        <div class="modal fade" id="editModal1" tabindex="-1" aria-labelledby="editModalLabel1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="editModalLabel1">แก้ไขข้อมูลหอพัก</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="?update=TRUE" method="POST">
+                                            <input type="hidden" name="id_apartment" value="<?= $row['id_apartment']; ?>">
+                                            <div class="mb-3">
+                                                <label for="name_apartment" class="form-label">ชื่อหอพัก</label>
+                                                <input type="text" class="form-control" id="name_apartment" name="name_apartment" value="<?= $row['name_apartment']; ?>" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="address" class="form-label">ที่อยู่หอพัก</label>
+                                                <input type="text" class="form-control" id="address" name="address" value="<?= $row['address']; ?>" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="w_bath_unit" class="form-label">ค่าน้ำ (บาทต่อหน่วย)</label>
+                                                <input type="number" class="form-control" id="w_bath_unit" name="w_bath_unit" value="<?= $row['w_bath_unit']; ?>" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="e_bath_unit" class="form-label">ค่าไฟฟ้า (บาทต่อหน่วย)</label>
+                                                <input type="number" class="form-control" id="e_bath_unit" name="e_bath_unit" value="<?= $row['e_bath_unit']; ?>" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="comment" class="form-label">หมายเหตุ</label>
+                                                <textarea class="form-control" id="comment" name="comment" required><?= $row['comment']; ?></textarea>
+                                            </div>
+                                            <center><button type="submit" class="btn btn-primary">บันทึกการเปลี่ยนแปลง</button></center>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
 
 
@@ -271,259 +310,19 @@ if (isset($_GET['del_id'])) {
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- ปุ่มแก้ไขข้อมูล -->
-                                        <center><button type="submit" class="btn btn-warning" name="submit1">แก้ไขข้อมูล
+                                        <!-- ปุ่มบันทึกข้อมูล -->
+                                        <center><button type="submit" class="btn btn-warning" name="submit1">บันทึกข้อมูล
                                             </button></center>
                                     </div>
                                 </form>
                             </div>
                         </div>
 
-                        <?php
-
-                        // Query ข้อมูลจากตาราง room
-                        $sql2 = "SELECT number_room, status_room, detail_room, charge_room FROM room";
-                        $result2 = $conn->query($sql2);
-                        ?>
-
-                        <!-- ข้อมูลห้องเช่า -->
-                        <div class="col-md-12 mb-3">
-                            <div class="card text-black" style="background-color: rgba(221, 160, 221, 0.5);">
-                                <div class="card-header"><strong>ข้อมูลห้องเช่า</strong></div>
-                                <div class="card-body">
-                                    <table class="table table-striped table-bordered">
-                                        <thead class="thead-dark">
-                                            <tr>
-                                                <th>เลขห้อง</th>
-                                                <th>สถานะห้อง</th>
-                                                <th>ประเภทห้อง</th>
-                                                <th>ค่าเช่าเฉพาะห้อง</th>
-                                                <th>แก้ไขข้อมูล</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php if ($result2->num_rows > 0): ?>
-                                                <?php while ($row2 = $result2->fetch_assoc()): ?>
-                                                    <tr>
-                                                        <td><?php echo htmlspecialchars($row2['number_room']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row2['status_room']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row2['detail_room']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row2['charge_room'] . ' บาท'); ?></td>
-                                                        <td>
-                                                            <center><a href="javascript:void(0);" onclick="openEditPopup('<?= $row2['number_room'] ?>', '<?= $row2['status_room'] ?>', '<?= $row2['detail_room'] ?>', '<?= $row2['charge_room'] ?>');" class="btn btn-warning btn-sm">แก้ไข</a></center>
-                                                        </td>
-                                                    </tr>
-                                                <?php endwhile; ?>
-                                            <?php else: ?>
-                                                <tr>
-                                                    <td colspan="5">ไม่มีข้อมูลห้องเช่า</td>
-                                                </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
-
-                                    <!-- Edit Room Modal -->
-                                    <div class="modal fade" id="editRoomModal" tabindex="-1" role="dialog" aria-labelledby="editRoomModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog" role="document">
-                                            <div class="modal-content text-dark">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="editRoomModalLabel">แก้ไขข้อมูลห้องเช่า</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <form id="editRoomForm">
-                                                        <div class="form-group">
-                                                            <label for="editNumberRoom">เลขห้อง</label>
-                                                            <input type="text" class="form-control" id="editNumberRoom" name="number_room" readonly>
-                                                        </div><br>
-                                                        <div class="form-group">
-                                                            <label for="editStatusRoom">สถานะห้อง</label>
-                                                            <select class="form-control" id="editStatusRoom" name="room_status" required>
-                                                                <option value="ว่าง">ว่าง</option>
-                                                                <option value="ไม่ว่าง">ไม่ว่าง</option>
-                                                                <option value="กำลังเช่าอยู่">กำลังเช่าอยู่</option>
-                                                            </select>
-                                                        </div><br>
-                                                        <div class="form-group">
-                                                            <label for="editDetailRoom">ประเภทห้อง</label>
-                                                            <select class="form-control" id="editDetailRoom" name="detail_room" required>
-                                                                <option value="ห้องพัดลม">ห้องพัดลม</option>
-                                                                <option value="ห้องแอร์">ห้องแอร์</option>
-                                                            </select>
-                                                        </div><br>
-                                                        <div class="form-group">
-                                                            <label for="editChargeRoom">ค่าเช่าเฉพาะห้อง</label>
-                                                            <input type="number" class="form-control" id="editChargeRoom" name="charge_room">
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <center>
-                                                        <button type="button" class="btn btn-primary" onclick="saveRoomData()">บันทึกการเปลี่ยนแปลง</button>
-                                                    </center>
-
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <script>
-                                        function openEditPopup(number_room, status_room, detail_room, charge_room) {
-                                            // กำหนดค่าเริ่มต้นให้กับฟอร์ม
-                                            document.getElementById('editNumberRoom').value = number_room;
-                                            document.getElementById('editStatusRoom').value = status_room;
-                                            document.getElementById('editDetailRoom').value = detail_room;
-                                            document.getElementById('editChargeRoom').value = charge_room;
-
-                                            // แสดง Modal Popup
-                                            $('#editRoomModal').modal('show');
-                                        }
-
-                                        function saveRoomData() {
-                                            // เก็บค่าจากฟอร์ม
-                                            var number_room = document.getElementById('editNumberRoom').value;
-                                            var status_room = document.getElementById('editStatusRoom').value;
-                                            var detail_room = document.getElementById('editDetailRoom').value;
-                                            var charge_room = document.getElementById('editChargeRoom').value;
-
-                                            // ส่งข้อมูลไปยัง PHP ด้วย AJAX
-                                            $.ajax({
-                                                url: '', // ไฟล์ PHP ที่ใช้ในการบันทึกข้อมูล
-                                                type: 'POST',
-                                                data: {
-                                                    number_room: number_room,
-                                                    status_room: status_room,
-                                                    detail_room: detail_room,
-                                                    charge_room: charge_room
-                                                },
-                                                success: function(response) {
-                                                    // เมื่อบันทึกสำเร็จ ให้แสดง SweetAlert
-                                                    setTimeout(function() {
-                                                        Swal.fire({
-                                                            title: '<div class="t1">แก้ไขข้อมูลห้องเช่าสำเร็จ</div>',
-                                                            icon: 'success',
-                                                            confirmButtonText: '<div class="text t1">ตกลง</div>',
-                                                            allowOutsideClick: false, // Disable clicking outside popup to close
-                                                            allowEscapeKey: false, // Disable ESC key to close
-                                                            allowEnterKey: false // Disable Enter key to close
-                                                        }).then((result) => {
-                                                            if (result.isConfirmed) {
-                                                                window.location.href = "setting";
-
-                                                            }
-                                                        });
-                                                    }, 100); // Adjust timeout duration if needed
-
-                                                    // ปิด Modal
-                                                    $('#editRoomModal').modal('hide');
-                                                },
-                                                error: function(xhr, status, error) {
-                                                    // เมื่อเกิดข้อผิดพลาด
-                                                    Swal.fire({
-                                                        icon: 'error',
-                                                        title: 'Error!',
-                                                        text: 'Something went wrong. Please try again.',
-                                                    });
-                                                }
-                                            });
-                                        }
-                                    </script>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ข้อมูลผู้เช่า -->
-                        <div class="col-md-12 mb-3">
-                            <div class="card text-black" style="background-color: rgba(255, 255, 0, 0.5);">
-                                <div class="card-header"><strong>ข้อมูลผู้เช่า</strong></div>
-                                <div class="card-body">
-                                    <table class="table table-striped table-bordered">
-                                        <thead class="thead-dark">
-                                            <tr>
-                                                <th>ชื่อ - สกุล ผู้เช่า</th>
-                                                <th>เบอร์โทร</th>
-                                                <th>อีเมล</th>
-                                                <th>สถานะ</th>
-                                                <th>ลบบัญชีผู้เช่า</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            // ดึงข้อมูลจากฐานข้อมูล
-                                            $sql3 = "SELECT * FROM tenant";
-                                            $result3 = $conn->query($sql3);
-
-                                            if ($result3->num_rows > 0) {
-                                                // ข้อมูลถูกต้อง
-                                                while ($row3 = $result3->fetch_assoc()) {
-                                                    $tenant_id = $row3["id_tenant"];
-                                                    $full_name = $row3["first_name"] . ' ' . $row3["last_name"];
-
-                                                    // ตรวจสอบว่ามีการเช่าห้องอยู่หรือไม่
-                                                    $sql_room = "SELECT * FROM room WHERE id_tenant = $tenant_id AND `status_room` LIKE 'กำลังเช่าอยู่'";
-                                                    $result_room = $conn->query($sql_room);
-
-                                                    if ($result_room->num_rows > 0) {
-                                                        $status_message = "กำลังเช่าอยู่";
-                                                    } else {
-                                                        $status_message = "ไม่ได้เช่า";
-                                                    }
-
-                                                    echo "<tr>";
-                                                    echo "<td>" . htmlspecialchars($full_name) . "</td>";
-                                                    echo "<td>" . htmlspecialchars($row3["tel"]) . "</td>";
-                                                    echo "<td>" . htmlspecialchars($row3["email"]) . "</td>";
-                                                    echo "<td>" . htmlspecialchars($status_message) . "</td>";
-                                                    echo "<td><a href='?del_id=" . urlencode($tenant_id) . "' class='btn btn-danger' onclick='return confirm(\"คุณแน่ใจหรือไม่ว่าต้องการลบบัญชีผู้เช่า?\")'>ลบบัญชีผู้เช่า</a></td>";
-                                                    echo "</tr>";
-                                                }
-                                            } else {
-                                                echo "<tr><td colspan='5'>ไม่มีข้อมูล</td></tr>";
-                                            }
-                                            ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
 
 
                     </div>
                 </div>
 
-                <!-- Bootstrap Modal สำหรับแก้ไขข้อมูล -->
-                <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="editModalLabel">แก้ไขข้อมูลหอพัก</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form action="?update=TRUE" method="POST">
-                                    <input type="hidden" name="id_apartment" value="<?= $row['id_apartment']; ?>">
-                                    <div class="mb-3">
-                                        <label for="name_apartment" class="form-label">ชื่อหอพัก</label>
-                                        <input type="text" class="form-control" id="name_apartment" name="name_apartment" value="<?= $row['name_apartment']; ?>" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="address" class="form-label">ที่อยู่หอพัก</label>
-                                        <input type="text" class="form-control" id="address" name="address" value="<?= $row['address']; ?>" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="w_bath_unit" class="form-label">ค่าน้ำ (บาทต่อหน่วย)</label>
-                                        <input type="number" class="form-control" id="w_bath_unit" name="w_bath_unit" value="<?= $row['w_bath_unit']; ?>" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="e_bath_unit" class="form-label">ค่าไฟฟ้า (บาทต่อหน่วย)</label>
-                                        <input type="number" class="form-control" id="e_bath_unit" name="e_bath_unit" value="<?= $row['e_bath_unit']; ?>" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">บันทึกการเปลี่ยนแปลง</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
             </div>
         </div>
@@ -534,7 +333,7 @@ if (isset($_GET['del_id'])) {
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

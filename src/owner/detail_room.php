@@ -1,30 +1,22 @@
 <?php
 session_start();
 include "../config_db.php";
-error_reporting(0);
-ini_set('display_errors', 0);
-
+// ปิดการแสดงข้อผิดพลาด
+// error_reporting(0);
+// ini_set('display_errors', 0);
 if (isset($_GET['id_room'])) {
     $id_room = $_GET['id_room'];
 }
+if (isset($_GET['upload_payment']) && $_GET['upload_payment'] == 'true') {
+    $id_rental = $_POST['id_rental'];
 
-//เพิ่มเลขมิเตอร์น้ำ
-if (isset($_GET['add_w_id'])) {
-
-    $number_room10 = $_GET['add_w_id'];
-    // รับข้อมูลจาก $_POST
-    $meterNumber = isset($_POST['meterNumber']) ? $conn->real_escape_string($_POST['meterNumber']) : '';
-
-    // สร้างคำสั่ง SQL สำหรับการแทรกข้อมูล
-    $sql6 = "INSERT INTO `water_meter` (`id_water_meter`, `number_room`, `number_water_meter`, `save_water_meter`) VALUES (NULL, '$number_room10', '$meterNumber', NOW())";
-
-    // ดำเนินการคำสั่ง SQL
-    if ($conn->query($sql6) === TRUE) {
+    $sql10 = "UPDATE rental SET step = 2 WHERE id_rental = $id_rental";
+    if (mysqli_query($conn, $sql10)) {
 ?>
         <script>
             setTimeout(function() {
                 Swal.fire({
-                    title: '<div class="t1">บันทึกค่ามิเตอร์น้ำสำเร็จ</div>',
+                    title: '<div class="t1">ตรวจสอบสลิปสำเร็จ</div>',
                     icon: 'success',
                     confirmButtonText: '<div class="text t1">ตกลง</div>',
                     allowOutsideClick: false, // Disable clicking outside popup to close
@@ -33,182 +25,38 @@ if (isset($_GET['add_w_id'])) {
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href = "?id_room=<?= $id_room ?>";
+
                     }
                 });
             }, 100); // Adjust timeout duration if needed
         </script>
     <?php
+    } else {
+        echo "เกิดข้อผิดพลาดในการอัพเดท: " . mysqli_error($conn);
     }
-
-    // ปิดการเชื่อมต่อ
-    $conn->close();
 }
+// ดึงข้อมูลทั้งหมดจากตาราง room
+$sql = "SELECT * FROM room WHERE id_room = $id_room";
+$result = $conn->query($sql);
 
+//เพิ่มเลขมิเตอร์
+if (isset($_GET['add_meter'])) {
 
-//เพิ่มเลขมิเตอร์ไฟฟ้า
-if (isset($_GET['add_e_id'])) {
-
-    $number_room10 = $_GET['add_e_id'];
+    $id_room_update = $_GET['add_meter'];
     // รับข้อมูลจาก $_POST
-    $meterNumber = isset($_POST['meterNumber']) ? $conn->real_escape_string($_POST['meterNumber']) : '';
+    $meterNumber0 = isset($_POST['meterNumber0']) ? $conn->real_escape_string($_POST['meterNumber0']) : '';
+    $meterNumber1 = isset($_POST['meterNumber1']) ? $conn->real_escape_string($_POST['meterNumber1']) : '';
 
     // สร้างคำสั่ง SQL สำหรับการแทรกข้อมูล
-    $sql7 = "INSERT INTO `electricity_meter` (`id_electricity_meter`, `number_room`, `number_electricity_meter`, `save_electricity_meter`) VALUES (NULL, '$number_room10', '$meterNumber', NOW())";
+    $sql6 = "INSERT INTO `meter` (`id_meter`, `id_room`, `number_water_meter`, `number_electricity_meter`, `meter_timestam`) VALUES (NULL, '$id_room_update', '$meterNumber0', '$meterNumber1', NOW())";
 
     // ดำเนินการคำสั่ง SQL
-    if ($conn->query($sql7) === TRUE) {
+    if ($conn->query($sql6) === TRUE) {
     ?>
         <script>
             setTimeout(function() {
                 Swal.fire({
-                    title: '<div class="t1">บันทึกค่ามิเตอร์ไฟฟ้าสำเร็จ</div>',
-                    icon: 'success',
-                    confirmButtonText: '<div class="text t1">ตกลง</div>',
-                    allowOutsideClick: false, // Disable clicking outside popup to close
-                    allowEscapeKey: false, // Disable ESC key to close
-                    allowEnterKey: false // Disable Enter key to close
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = "?id_room=<?= $id_room ?>";
-                    }
-                });
-            }, 100); // Adjust timeout duration if needed
-        </script>
-    <?php
-    }
-
-    // ปิดการเชื่อมต่อ
-    $conn->close();
-}
-
-
-//แก้ไขเลขมิเตอร์น้ำ
-if (isset($_GET['edit_w_id'])) {
-    $idRoom = $_POST['id_room'];
-    $editId = $_POST['edit_w_id'];
-    $numberWaterMeter = $_POST['number_water_meter'];
-
-    // ทำการอัพเดตข้อมูลในฐานข้อมูล
-    $sql = "UPDATE water_meter SET number_water_meter = ?, save_water_meter = NOW() WHERE id_water_meter = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("si", $numberWaterMeter, $editId);
-
-    if ($stmt->execute()) {
-    ?>
-        <script>
-            setTimeout(function() {
-                Swal.fire({
-                    title: '<div class="t1">แก้ไขมิเตอร์น้ำสำเร็จ</div>',
-                    icon: 'success',
-                    confirmButtonText: '<div class="text t1">ตกลง</div>',
-                    allowOutsideClick: false, // Disable clicking outside popup to close
-                    allowEscapeKey: false, // Disable ESC key to close
-                    allowEnterKey: false // Disable Enter key to close
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = "?id_room=<?= $id_room ?>";
-                    }
-                });
-            }, 100); // Adjust timeout duration if needed
-        </script>
-    <?php
-    } else {
-        $response['error'] = 'Execute failed: ' . $stmt->error;
-    }
-
-    // ปิดคำสั่ง
-    $stmt->close();
-}
-
-//แก้ไขเลขมิเตอร์ไฟฟ้า
-if (isset($_GET['edit_e_id'])) {
-    $idRoom = $_POST['id_room'];
-    $editId1 = $_GET['edit_e_id'];
-    $numberelectricityMeter = $_POST['number_electricity_meter'];
-
-    // ทำการอัพเดตข้อมูลในฐานข้อมูล
-    $sql = "UPDATE electricity_meter SET number_electricity_meter = ?, save_electricity_meter = NOW() WHERE id_electricity_meter = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("si", $numberelectricityMeter, $editId1);
-
-    if ($stmt->execute()) {
-    ?>
-        <script>
-            setTimeout(function() {
-                Swal.fire({
-                    title: '<div class="t1">แก้ไขมิเตอร์ไฟฟ้าสำเร็จ</div>',
-                    icon: 'success',
-                    confirmButtonText: '<div class="text t1">ตกลง</div>',
-                    allowOutsideClick: false, // Disable clicking outside popup to close
-                    allowEscapeKey: false, // Disable ESC key to close
-                    allowEnterKey: false // Disable Enter key to close
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = "?id_room=<?= $id_room ?>";
-                    }
-                });
-            }, 100); // Adjust timeout duration if needed
-        </script>
-    <?php
-    } else {
-        $response['error'] = 'Execute failed: ' . $stmt->error;
-    }
-
-    // ปิดคำสั่ง
-    $stmt->close();
-}
-
-
-// ลบมิเตอร์น้ำ
-if (isset($_GET['del_w_id'])) {
-    $id_water_meter = $_GET['del_w_id'];
-    // เตรียมคำสั่ง SQL
-    $sql = "DELETE FROM water_meter WHERE id_water_meter = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id_water_meter);
-
-    if ($stmt->execute()) {
-    ?>
-        <script>
-            setTimeout(function() {
-                Swal.fire({
-                    title: '<div class="t1">ลบมิเตอร์น้ำสำเร็จ</div>',
-                    icon: 'success',
-                    confirmButtonText: '<div class="text t1">ตกลง</div>',
-                    allowOutsideClick: false, // Disable clicking outside popup to close
-                    allowEscapeKey: false, // Disable ESC key to close
-                    allowEnterKey: false // Disable Enter key to close
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = "?id_room=<?= $id_room ?>";
-                    }
-                });
-            }, 100); // Adjust timeout duration if needed
-        </script>
-    <?php
-    } else {
-        echo "Execute failed: " . $stmt->error;
-    }
-
-    // ปิดคำสั่ง
-    $stmt->close();
-}
-
-
-// ลบมิเตอร์ไฟฟ้า
-if (isset($_GET['del_e_id'])) {
-    $id_electricity_meter = $_GET['del_e_id'];
-    // เตรียมคำสั่ง SQL
-    $sql = "DELETE FROM electricity_meter WHERE id_electricity_meter = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $id_electricity_meter);
-
-    if ($stmt->execute()) {
-    ?>
-        <script>
-            setTimeout(function() {
-                Swal.fire({
-                    title: '<div class="t1">ลบมิเตอร์ไฟฟ้าสำเร็จ</div>',
+                    title: '<div class="t1">บันทึกค่ามิเตอร์สำเร็จ</div>',
                     icon: 'success',
                     confirmButtonText: '<div class="text t1">ตกลง</div>',
                     allowOutsideClick: false, // Disable clicking outside popup to close
@@ -222,13 +70,128 @@ if (isset($_GET['del_e_id'])) {
             }, 100); // Adjust timeout duration if needed
         </script>
 <?php
-    } else {
-        echo "Execute failed: " . $stmt->error;
-    }
+        //ข้อมูลพื้นฐาน
+        $sql0 = "SELECT * FROM apartment_data";
+        $result0 = $conn->query($sql0);
+        $row0 = $result0->fetch_assoc();
+        $row = $result->fetch_assoc();
+        $charge_room = $row['charge_room']; // ค่าห้อง
 
-    // ปิดคำสั่ง
-    $stmt->close();
+        // ข้อมูลมิเตอร์สำหรับรายการสุดท้ายและรองสุดท้าย
+        $sql2 = "SELECT * FROM meter WHERE id_room = $id_room ORDER BY id_meter  DESC LIMIT 2";
+        $result2 = $conn->query($sql2);
+
+        // ตั้งค่าเริ่มต้นให้ตัวแปร
+        //น้ำ
+        $number_water_meter_second_last = null;
+        $number_water_meter_last = null;
+
+        //ไฟฟ้า
+        $number_electricity_meter_last = null;
+        $number_electricity_meter_second_last = null;
+
+        if ($result2->num_rows == 2) {
+            // ดึงข้อมูลรองสุดท้ายและสุดท้าย
+            $row2_last = $result2->fetch_assoc(); // ข้อมูลสุดท้าย
+            $row2_second_last = $result2->fetch_assoc(); // ข้อมูลรองสุดท้าย
+            $number_water_meter_last = $row2_last['number_water_meter'];
+            $number_water_meter_second_last = $row2_second_last['number_water_meter'];
+
+            $number_electricity_meter_last = $row2_last['number_electricity_meter'];
+            $number_electricity_meter_second_last = $row2_second_last['number_electricity_meter'];
+        } elseif ($result2->num_rows == 1) {
+            // ถ้ามีแค่ข้อมูลสุดท้ายเพียงรายการเดียว
+            $row2_last = $result2->fetch_assoc();
+            $number_water_meter_last = $row2_last['number_water_meter'];
+            $number_water_meter_second_last = "( ไม่มีหมายเลขมิเตอร์น้ำก่อนหน้า )"; // ไม่มีข้อมูลรองสุดท้าย
+
+            $number_electricity_meter_last = $row2_last['number_electricity_meter'];
+            $number_electricity_meter_second_last = null; // ไม่มีข้อมูลรองสุดท้าย
+        }
+
+        // ตรวจสอบว่ามีข้อมูลทั้งสองหน่วย น้ำ
+        if (!is_null($number_water_meter_last) && !is_null($number_water_meter_second_last)) {
+            // แปลงเป็น float เพื่อให้แน่ใจว่าเป็นตัวเลข
+            $number_water_meter_last = (float)$number_water_meter_last;
+            $number_water_meter_second_last = (float)$number_water_meter_second_last;
+
+            // ตรวจสอบว่ามิเตอร์น้ำรีเซ็ตหรือไม่
+            if ($number_water_meter_last < $number_water_meter_second_last) {
+                // สมมติว่าค่ามิเตอร์น้ำเต็มรอบคือ 10000
+                $difference = ($number_water_meter_last + 10000) - $number_water_meter_second_last;
+            } else {
+                // กรณีปกติ
+                $difference = $number_water_meter_last - $number_water_meter_second_last;
+            }
+
+            $def = "น้ำที่ใช้ไปในเดือนนี้: " . $difference . " หน่วย";
+        } else {
+            $def = "ไม่สามารถคำนวณค่าต่างได้ เนื่องจากข้อมูลไม่ครบถ้วน";
+        }
+
+
+        // ตรวจสอบว่ามีข้อมูลทั้งสองหน่วย ไฟฟ้า
+        if (!is_null($number_electricity_meter_last) && !is_null($number_electricity_meter_second_last)) {
+            // แปลงเป็น float เพื่อให้แน่ใจว่าเป็นตัวเลข
+            $number_electricity_meter_last = (float)$number_electricity_meter_last;
+            $number_electricity_meter_second_last = (float)$number_electricity_meter_second_last;
+
+            // ตรวจสอบว่ามิเตอร์รีเซ็ตหรือไม่
+            if ($number_electricity_meter_last < $number_electricity_meter_second_last) {
+                // สมมติว่าค่ามิเตอร์เต็มรอบคือ 10000
+                $difference1 = ($number_electricity_meter_last + 10000) - $number_electricity_meter_second_last;
+            } else {
+                // กรณีปกติ
+                $difference1 = $number_electricity_meter_last - $number_electricity_meter_second_last;
+            }
+
+            $def1 = "ไฟฟ้าที่ใช้ไปในเดือนนี้: " . $difference1 . " หน่วย";
+        } else {
+            $def1 = "ไม่สามารถคำนวณค่าต่างได้ เนื่องจากข้อมูลไม่ครบถ้วน";
+            $difference1 = "0";
+        }
+
+
+        // คำนวณค่าน้ำและค่าไฟฟ้า
+        $water_cost = $difference * $row0['w_bath_unit']; // ค่าน้ำ
+        $electricity_cost = $difference1 * $row0['e_bath_unit']; // ค่าไฟฟ้า
+
+        // ผลรวมทั้งหมด
+        $total_cost = $charge_room + $water_cost + $electricity_cost;
+
+
+
+        $id_meter_up = $row2_last['id_meter']; // id มิเตอร์ล่าสุด
+
+        // ตรวจสอบว่ามีค่าที่จำเป็นครบถ้วน
+        if (!is_null($id_meter_up) && !is_null($water_cost) && !is_null($electricity_cost) && !is_null($id_room_update) && !is_null($total_cost)) {
+
+            // SQL สำหรับการ insert ข้อมูลลงตาราง rental
+            $sql_insert = "INSERT INTO rental (id_meter, water_bill, electricity_bill, id_room, net, rental_timestam) 
+                   VALUES (?, ?, ?, ?, ?, NOW())";
+
+            // เตรียม statement สำหรับการป้องกัน SQL Injection
+            $stmt = $conn->prepare($sql_insert);
+
+            // ผูกค่าที่ต้องการ insert เข้ากับ statement
+            $stmt->bind_param('iddid', $id_meter_up, $water_cost, $electricity_cost, $id_room_update, $total_cost);
+
+            // Execute คำสั่ง SQL
+            if ($stmt->execute()) {
+                // echo "บันทึกข้อมูลลงตาราง rental สำเร็จ";
+            } else {
+                echo "เกิดข้อผิดพลาด: " . $stmt->error;
+            }
+
+            // ปิด statement
+            $stmt->close();
+        } else {
+            echo "ไม่สามารถบันทึกข้อมูลลงตาราง rental ได้ เนื่องจากข้อมูลไม่ครบถ้วน";
+        }
+    }
 }
+
+
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -276,428 +239,466 @@ if (isset($_GET['del_e_id'])) {
     <?php include "plugin/menu.php"; ?>
 
     <!-- Main Content -->
+
+
+
     <?php
-    // ดึงข้อมูลทั้งหมดจากตาราง room
-    $sql = "SELECT * FROM room WHERE id_room = $id_room";
-    $result = $conn->query($sql);
+    // ข้อมูลผู้เช่า
+    $sql1 = "SELECT * FROM tenant WHERE id_room = $id_room";
+    $result1 = $conn->query($sql1);
+
+    $row1 = $result1->fetch_assoc();
+    if ($row1 && isset($row1['first_name']) && isset($row1['last_name'])) {
+        $full_name = $row1['first_name'] . ' ' . $row1['last_name'];
+
     ?>
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-12">
-                <h1>การจัดการห้องพัก</h1>
-                <!-- <p>ในหน้านี้คุณสามารถเลือกห้องเพื่อแก้ไขข้อมูล</p> -->
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-12">
+                    <h1>การจัดการห้องพัก</h1>
+                    <!-- <p>ในหน้านี้คุณสามารถเลือกห้องเพื่อแก้ไขข้อมูล</p> -->
 
-                <div class="row">
-                    <?php
-                    if ($result->num_rows > 0) {
-                        $count = 0;
-                        //ข้อมูลพื้นฐาน
-                        $sql0 = "SELECT * FROM apartment_data";
-                        $result0 = $conn->query($sql0);
-                        $row0 = $result0->fetch_assoc();
+                    <div class="row">
+                        <?php
+                        if ($result->num_rows > 0) {
+                            $row = $result->fetch_assoc();
+                            $count = 0;
 
-
-
-
-                        $row = $result->fetch_assoc();
-
-                        $id_tenant = $row['id_tenant'];
-                        $number_room = $row['number_room'];
-                        $charge_room = $row['charge_room'];
-                        // ข้อมูลผู้เช่า
-                        $sql1 = "SELECT * FROM tenant WHERE id_tenant = $id_tenant";
-                        $result1 = $conn->query($sql1);
-
-                        $row1 = $result1->fetch_assoc();
-                        $full_name = $row1['first_name'] . '  ' . $row1['last_name'] . ' ( ' . $row1['tel'] . ' )';
+                            //ข้อมูลพื้นฐาน
+                            $sql0 = "SELECT * FROM apartment_data";
+                            $result0 = $conn->query($sql0);
+                            $row0 = $result0->fetch_assoc();
 
 
 
-                        // ข้อมูลมิเตอร์น้ำสำหรับรายการสุดท้ายและรองสุดท้าย
-                        $sql2 = "SELECT * FROM water_meter WHERE number_room = $number_room ORDER BY id_water_meter  DESC LIMIT 2";
-                        $result2 = $conn->query($sql2);
+                            $number_room = $row['number_room'];
+                            $charge_room = $row['charge_room'];
 
-                        // ตั้งค่าเริ่มต้นให้ตัวแปร
-                        $number_water_meter_second_last = null;
-                        $number_water_meter_last = null;
 
-                        if ($result2->num_rows == 2) {
-                            // ดึงข้อมูลรองสุดท้ายและสุดท้าย
-                            $row2_last = $result2->fetch_assoc(); // ข้อมูลสุดท้าย
-                            $row2_second_last = $result2->fetch_assoc(); // ข้อมูลรองสุดท้าย
-                            $number_water_meter_last = $row2_last['number_water_meter'];
-                            $number_water_meter_second_last = $row2_second_last['number_water_meter'];
-                        } elseif ($result2->num_rows == 1) {
-                            // ถ้ามีแค่ข้อมูลสุดท้ายเพียงรายการเดียว
-                            $row2_last = $result2->fetch_assoc();
-                            $number_water_meter_last = $row2_last['number_water_meter'];
-                            $number_water_meter_second_last = "( ไม่มีหมายเลขมิเตอร์น้ำก่อนหน้า )"; // ไม่มีข้อมูลรองสุดท้าย
-                        }
 
-                        // ตรวจสอบว่ามีข้อมูลทั้งสองหน่วย
-                        if (!is_null($number_water_meter_last) && !is_null($number_water_meter_second_last)) {
-                            // แปลงเป็น float เพื่อให้แน่ใจว่าเป็นตัวเลข
-                            $number_water_meter_last = (float)$number_water_meter_last;
-                            $number_water_meter_second_last = (float)$number_water_meter_second_last;
 
-                            // ตรวจสอบว่ามิเตอร์น้ำรีเซ็ตหรือไม่
-                            if ($number_water_meter_last < $number_water_meter_second_last) {
-                                // สมมติว่าค่ามิเตอร์น้ำเต็มรอบคือ 10000
-                                $difference = ($number_water_meter_last + 10000) - $number_water_meter_second_last;
-                            } else {
-                                // กรณีปกติ
-                                $difference = $number_water_meter_last - $number_water_meter_second_last;
+                            // ข้อมูลมิเตอร์สำหรับรายการสุดท้ายและรองสุดท้าย
+                            $sql2 = "SELECT * FROM meter WHERE id_room = $id_room ORDER BY id_meter  DESC LIMIT 2";
+                            $result2 = $conn->query($sql2);
+
+                            // ตั้งค่าเริ่มต้นให้ตัวแปร
+                            //น้ำ
+                            $number_water_meter_second_last = null;
+                            $number_water_meter_last = null;
+
+                            //ไฟฟ้า
+                            $number_electricity_meter_last = null;
+                            $number_electricity_meter_second_last = null;
+
+                            if ($result2->num_rows == 2) {
+                                // ดึงข้อมูลรองสุดท้ายและสุดท้าย
+                                $row2_last = $result2->fetch_assoc(); // ข้อมูลสุดท้าย
+                                $row2_second_last = $result2->fetch_assoc(); // ข้อมูลรองสุดท้าย
+                                $number_water_meter_last = $row2_last['number_water_meter'];
+                                $number_water_meter_second_last = $row2_second_last['number_water_meter'];
+
+                                $number_electricity_meter_last = $row2_last['number_electricity_meter'];
+                                $number_electricity_meter_second_last = $row2_second_last['number_electricity_meter'];
+                            } elseif ($result2->num_rows == 1) {
+                                // ถ้ามีแค่ข้อมูลสุดท้ายเพียงรายการเดียว
+                                $row2_last = $result2->fetch_assoc();
+                                $number_water_meter_last = $row2_last['number_water_meter'];
+                                $number_water_meter_second_last = "( ไม่มีหมายเลขมิเตอร์น้ำก่อนหน้า )"; // ไม่มีข้อมูลรองสุดท้าย
+
+                                $number_electricity_meter_last = $row2_last['number_electricity_meter'];
+                                $number_electricity_meter_second_last = null; // ไม่มีข้อมูลรองสุดท้าย
                             }
 
-                            $def = "น้ำที่ใช้ไปในเดือนนี้: " . $difference . " หน่วย";
-                        } else {
-                            $def = "ไม่สามารถคำนวณค่าต่างได้ เนื่องจากข้อมูลไม่ครบถ้วน";
-                        }
+                            // ตรวจสอบว่ามีข้อมูลทั้งสองหน่วย น้ำ
+                            if (!is_null($number_water_meter_last) && !is_null($number_water_meter_second_last)) {
+                                // แปลงเป็น float เพื่อให้แน่ใจว่าเป็นตัวเลข
+                                $number_water_meter_last = (float)$number_water_meter_last;
+                                $number_water_meter_second_last = (float)$number_water_meter_second_last;
 
-                        // ข้อมูลมิเตอร์ไฟฟ้าสำหรับรายการสุดท้ายและรองสุดท้าย
-                        $sql3 = "SELECT * FROM electricity_meter WHERE number_room = $number_room ORDER BY id_electricity_meter DESC LIMIT 2";
-                        $result3 = $conn->query($sql3);
+                                // ตรวจสอบว่ามิเตอร์น้ำรีเซ็ตหรือไม่
+                                if ($number_water_meter_last < $number_water_meter_second_last) {
+                                    // สมมติว่าค่ามิเตอร์น้ำเต็มรอบคือ 10000
+                                    $difference = ($number_water_meter_last + 10000) - $number_water_meter_second_last;
+                                } else {
+                                    // กรณีปกติ
+                                    $difference = $number_water_meter_last - $number_water_meter_second_last;
+                                }
 
-                        // ตั้งค่าเริ่มต้นให้ตัวแปร
-                        $number_electricity_meter_last = null;
-                        $number_electricity_meter_second_last = null;
-
-                        if ($result3->num_rows == 2) {
-                            // ดึงข้อมูลรองสุดท้ายและสุดท้าย
-                            $row3_last = $result3->fetch_assoc(); // ข้อมูลสุดท้าย
-                            $row3_second_last = $result3->fetch_assoc(); // ข้อมูลรองสุดท้าย
-                            $number_electricity_meter_last = $row3_last['number_electricity_meter'];
-                            $number_electricity_meter_second_last = $row3_second_last['number_electricity_meter'];
-                        } elseif ($result3->num_rows == 1) {
-                            // ถ้ามีแค่ข้อมูลสุดท้ายเพียงรายการเดียว
-                            $row3_last = $result3->fetch_assoc();
-                            $number_electricity_meter_last = $row3_last['number_electricity_meter'];
-                            $number_electricity_meter_second_last = null; // ไม่มีข้อมูลรองสุดท้าย
-                        }
-
-                        // ตรวจสอบว่ามีข้อมูลทั้งสองหน่วย
-                        if (!is_null($number_electricity_meter_last) && !is_null($number_electricity_meter_second_last)) {
-                            // แปลงเป็น float เพื่อให้แน่ใจว่าเป็นตัวเลข
-                            $number_electricity_meter_last = (float)$number_electricity_meter_last;
-                            $number_electricity_meter_second_last = (float)$number_electricity_meter_second_last;
-
-                            // ตรวจสอบว่ามิเตอร์รีเซ็ตหรือไม่
-                            if ($number_electricity_meter_last < $number_electricity_meter_second_last) {
-                                // สมมติว่าค่ามิเตอร์เต็มรอบคือ 10000
-                                $difference1 = ($number_electricity_meter_last + 10000) - $number_electricity_meter_second_last;
+                                $def = "น้ำที่ใช้ไปในเดือนนี้: " . $difference . " หน่วย";
                             } else {
-                                // กรณีปกติ
-                                $difference1 = $number_electricity_meter_last - $number_electricity_meter_second_last;
+                                $def = "ไม่สามารถคำนวณค่าต่างได้ เนื่องจากข้อมูลไม่ครบถ้วน";
                             }
 
-                            $def1 = "ไฟฟ้าที่ใช้ไปในเดือนนี้: " . $difference1 . " หน่วย";
-                        } else {
-                            $def1 = "ไม่สามารถคำนวณค่าต่างได้ เนื่องจากข้อมูลไม่ครบถ้วน";
-                            $difference1 = "0";
-                        }
+
+                            // ตรวจสอบว่ามีข้อมูลทั้งสองหน่วย ไฟฟ้า
+                            if (!is_null($number_electricity_meter_last) && !is_null($number_electricity_meter_second_last)) {
+                                // แปลงเป็น float เพื่อให้แน่ใจว่าเป็นตัวเลข
+                                $number_electricity_meter_last = (float)$number_electricity_meter_last;
+                                $number_electricity_meter_second_last = (float)$number_electricity_meter_second_last;
+
+                                // ตรวจสอบว่ามิเตอร์รีเซ็ตหรือไม่
+                                if ($number_electricity_meter_last < $number_electricity_meter_second_last) {
+                                    // สมมติว่าค่ามิเตอร์เต็มรอบคือ 10000
+                                    $difference1 = ($number_electricity_meter_last + 10000) - $number_electricity_meter_second_last;
+                                } else {
+                                    // กรณีปกติ
+                                    $difference1 = $number_electricity_meter_last - $number_electricity_meter_second_last;
+                                }
+
+                                $def1 = "ไฟฟ้าที่ใช้ไปในเดือนนี้: " . $difference1 . " หน่วย";
+                            } else {
+                                $def1 = "ไม่สามารถคำนวณค่าต่างได้ เนื่องจากข้อมูลไม่ครบถ้วน";
+                                $difference1 = "0";
+                            }
 
 
-                        // คำนวณค่าน้ำและค่าไฟฟ้า
-                        $water_cost = $difference * $row0['w_bath_unit']; // ค่าน้ำ
-                        $electricity_cost = $difference1 * $row0['e_bath_unit']; // ค่าไฟฟ้า
+                            // คำนวณค่าน้ำและค่าไฟฟ้า
+                            $water_cost = $difference * $row0['w_bath_unit']; // ค่าน้ำ
+                            $electricity_cost = $difference1 * $row0['e_bath_unit']; // ค่าไฟฟ้า
 
-                        // ผลรวมทั้งหมด
-                        $total_cost = $charge_room + $water_cost + $electricity_cost;
+                            // ผลรวมทั้งหมด
+                            $total_cost = $charge_room + $water_cost + $electricity_cost;
 
-                        if (($water_cost > 0) && ($electricity_cost > 0)) {
-                            $button_send = "true";
-                        }
-                    ?>
-                        <div class="container mt-4">
-                            <div class="row">
-                                <!-- ข้อมูลห้อง -->
-                                <div class="col-md-12 mb-3">
-                                    <div class="card text-white bg-success">
-                                        <div class="card-header">ข้อมูลห้อง <?= $row['number_room']; ?></div>
-                                        <div class="card-body">
-                                            <p class="card-text"> - ผู้เช่าห้อง : <?= $full_name ?></p>
-                                            <p class="card-text"> - เลขมิเตอร์น้ำก่อนหน้า : <?= $number_water_meter_second_last ?> เลขมิเตอร์น้ำล่าสุด : <?= $number_water_meter_last ?> <?= $def ?></p>
-                                            <p class="card-text"> - เลขมิเตอร์ไฟฟ้าก่อนหน้า : <?= $number_electricity_meter_second_last ?> เลขมิเตอร์ไฟฟ้าล่าสุด : <?= $number_electricity_meter_last ?> <?= $def1 ?></p>
-                                            <p class="card-text"> - ค่าห้อง : <?= $charge_room . "+ ค่าน้ำ ( " . $difference ?> X <?= $row0['w_bath_unit'] . ' ) + ค่าไฟฟ้า ( ' . $difference1 . " X " . $row0['e_bath_unit'] . " ) รวมค่าห้องทั้งสิ้น " . $total_cost . " บาท" ?></p>
+                            if (($water_cost > 0) && ($electricity_cost > 0)) {
+                                $button_send = "true";
+                            }
+                        ?>
+                            <div class="container mt-4">
+                                <div class="row">
+                                    <!-- ข้อมูลห้อง -->
+                                    <div class="col-md-12 mb-3">
+                                        <div class="card text-white bg-success">
+                                            <div class="card-header">ข้อมูลห้อง <?= $row['number_room']; ?></div>
+                                            <div class="card-body">
+                                                <p class="card-text"> - ผู้เช่าห้อง : <?= $full_name . ' Tel : ' . $row1['tel'] . ' mail : ' . $row1['email'] ?> </p>
+                                                <p class="card-text"> - เลขมิเตอร์น้ำก่อนหน้า : <?= $number_water_meter_second_last ?> เลขมิเตอร์น้ำล่าสุด : <?= $number_water_meter_last ?> <?= $def ?></p>
+                                                <p class="card-text"> - เลขมิเตอร์ไฟฟ้าก่อนหน้า : <?= $number_electricity_meter_second_last ?> เลขมิเตอร์ไฟฟ้าล่าสุด : <?= $number_electricity_meter_last ?> <?= $def1 ?></p>
+                                                <p class="card-text"> - ค่าห้อง : <?= number_format($charge_room) . " + ค่าน้ำ ( " . $difference ?> X <?= $row0['w_bath_unit'] . ' ) + ค่าไฟฟ้า ( ' . $difference1 . " X " . $row0['e_bath_unit'] . " ) รวมค่าห้องทั้งสิ้น " . number_format($total_cost) . " บาท" ?></p>
 
-                                            <!-- Section for PDF icons -->
-                                            <div class="pdf-icons mt-3">
-                                                <p class="card-text">- ใบแจ้งหนี้ย้อนหลัง 6 เดือน: </p>
-                                                <?php
-                                                function thaiDate($date)
-                                                {
-                                                    $thai_month_arr = array(
-                                                        "มกราคม",
-                                                        "กุมภาพันธ์",
-                                                        "มีนาคม",
-                                                        "เมษายน",
-                                                        "พฤษภาคม",
-                                                        "มิถุนายน",
-                                                        "กรกฎาคม",
-                                                        "สิงหาคม",
-                                                        "กันยายน",
-                                                        "ตุลาคม",
-                                                        "พฤศจิกายน",
-                                                        "ธันวาคม"
-                                                    );
-
-                                                    // แยกส่วนของเดือนและปีจากวันที่ที่ได้รับมา
-                                                    $month = date('n', strtotime($date)); // เอาเฉพาะตัวเลขเดือน (1-12)
-                                                    $year = date('Y', strtotime($date)) + 543; // เปลี่ยนปี ค.ศ. เป็น พ.ศ.
-
-                                                    // คืนค่าเดือนภาษาไทยและปี พ.ศ.
-                                                    return $thai_month_arr[$month - 1] . ' ' . $year;
-                                                }
-                                                for ($i = 0; $i < 6; $i++) {
-                                                    // สร้างชื่อเดือนย้อนหลังจากเดือนปัจจุบัน
-                                                    $month = date('F Y', strtotime("-$i month"));
-                                                    
-
-
-                                                    // Display PDF icons with links
-                                                ?><a href='../PDF/pdf?email=<?=$row1['email']?>&id_room=<?=$row['number_room']?>&f_name=<?=$full_name?>&wc=<?=$water_cost?>&we=<?=$electricity_cost?>&cr=<?=$charge_room?>&total=<?=$total_cost?>&my=<?=thaiDate($month)?>&name_ap=<?=$row0['name_apartment']?>&wc1=<?= $number_water_meter_second_last ?>&wc2=<?= $number_water_meter_last ?>&wc3=<?=$difference?>&we1=<?=$number_electricity_meter_second_last?>&we2=<?= $number_electricity_meter_last ?>&we3=<?=$difference1?>&wc4=<?= $row0['w_bath_unit']?>&we4=<?=$row0['e_bath_unit']?>' target='_blank' class='pdf-icon'>
-                                                        <i class='fas fa-file-pdf'></i> <?= thaiDate($month) ?>
-                                                    </a>
-                                                <?php
-                                                }
-                                                ?>
-                                            </div>
-                                            <div class="pdf-icons mt-3">
-                                                <p class="card-text">- ส่ง mail ใบแจ้งหนี้เดือนปัจจุบัน: </p>
-                                                <?php
-                                                $month1 = date('F Y');
-
-                                                if (($water_cost > 0) && ($electricity_cost > 0)) {
-                                                ?>
-                                                    <a href='../send_email?email=<?= $row1['email'] ?>&id_room=<?= $row['number_room'] ?>&f_name=<?= $full_name ?>&wc=<?= $water_cost ?>&we=<?= $electricity_cost ?>&cr=<?= $charge_room ?>&total=<?= $total_cost ?>' target='_blank' class='mail-icon'>
-                                                        <i class='fas fa-envelope'></i> <?= thaiDate($month1); ?>
-                                                    </a>
-                                                <?php
-                                                }
-                                                ?>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <!-- ข้อมูลมิเตอร์น้ำและไฟฟ้า -->
-                                <div class="col-md-6 mb-3">
-                                    <div class="card text-white bg-primary">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
-                                            <span>ประวัติเลขมิเตอร์น้ำ</span>
-                                            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addRoomModal">เพิ่มข้อมูล</button>
-
-                                            <!-- Modal -->
-                                            <div class="modal fade text-dark" id="addRoomModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="exampleModalLabel">กรอกเลขมิเตอร์น้ำ</h5>
-                                                            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <form action="?id_room=<?= $id_room ?>&add_w_id=<?= $row['number_room']; ?>" method="post">
-                                                                <div class="form-group">
-                                                                    <label for="meterNumber">เลขมิเตอร์น้ำ:</label>
-                                                                    <input type="number" class="form-control" id="meterNumber" name="meterNumber" min="0" max="9999" required oninput="limitInput(this)">
-                                                                </div><br>
-                                                                <center><button type="submit" name="submit" class="btn btn-primary">บันทึกข้อมูล</button></center>
-                                                            </form>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">ปิด</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body">
-                                            <table class="table table-bordered table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>เลขมิเตอร์น้ำ</th>
-                                                        <th>วันที่บันทึก</th>
-                                                        <th>การจัดการ</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
+                                                <!-- Section for PDF icons -->
+                                                <div class="pdf-icons mt-3">
+                                                    <p class="card-text">- ใบแจ้งหนี้ PDF: </p>
                                                     <?php
-                                                    // ตัวอย่างการ query ข้อมูลมิเตอร์น้ำ
-                                                    $query4 = "SELECT id_water_meter, number_water_meter, save_water_meter FROM water_meter WHERE number_room = $number_room ORDER BY id_water_meter DESC LIMIT 6";
-                                                    $result4 = $conn->query($query4);
-                                                    while ($row4 = $result4->fetch_assoc()) {
-                                                    ?>
-                                                        <tr>
-                                                            <td><?= $row4['number_water_meter']; ?></td>
-                                                            <td><?= date('d-m-Y H:i:s', strtotime($row4['save_water_meter'])); ?></td>
-                                                            <td>
-                                                                <a href="javascript:void(0);" onclick="openEditPopup('<?= $number_room ?>', '<?= $row4['id_water_meter'] ?>', '<?= $row4['number_water_meter'] ?>');" class="btn btn-warning btn-sm">แก้ไข</a>
+                                                    // Get current month and year in the format 'F Y'
+                                                    $month1 = date('F Y');
 
-                                                                <script>
-                                                                    function openEditPopup(numberRoom, waterMeterId, number_water_meter) {
-                                                                        Swal.fire({
-                                                                            title: 'แก้ไขเลขมิเตอร์น้ำ',
-                                                                            html: `
-            <form action="?id_room=<?= $id_room ?>&edit_w_id=${waterMeterId}" method="post">
-                <input type="hidden" name="id_room" value="${numberRoom}">
-                <input type="hidden" name="edit_w_id" value="${waterMeterId}">
-                <div class="form-group">
-                    <label for="number_water_meter">เลขมิเตอร์น้ำ</label>
-                    <input type="text" id="number_water_meter" name="number_water_meter" value="${number_water_meter}" class="form-control">
-                </div><br>
-                <div class="modal-footer">
-                    <div class="d-flex justify-content-center w-100">
-                        <button type="button" class="btn btn-secondary me-2" onclick="Swal.close()">ยกเลิก</button>
-                        <button type="submit" class="btn btn-primary" name="submit">บันทึก</button>
-                    </div>
-                </div>
-            </form>
-        `,
-                                                                            focusConfirm: false,
-                                                                            showConfirmButton: false,
-                                                                            showCancelButton: false,
-                                                                            showCloseButton: false,
-                                                                        });
-
-                                                                        // ใช้ CSS ของ Swal เพื่อจัดการการจัดวาง
-                                                                        const footer = document.querySelector('.swal2-actions');
-                                                                        if (footer) {
-                                                                            footer.style.display = 'flex';
-                                                                            footer.style.justifyContent = 'center';
-                                                                        }
-                                                                    }
-                                                                </script>
-
-
-
-                                                                <a href="?id_room=<?= $id_room ?>&del_w_id=<?= $row4['id_water_meter'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('ยืนยันการลบข้อมูล?');">ลบ</a>
-                                                            </td>
-                                                            </td>
-                                                        </tr>
-
-                                                    <?php } ?>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <div class="card text-white bg-danger">
-                                        <div class="card-header d-flex justify-content-between align-items-center">
-                                            <span>ประวัติเลขมิเตอร์ไฟฟ้า</span>
-                                            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addRoomModal1">เพิ่มข้อมูล</button>
-                                            <!-- Modal -->
-                                            <div class="modal fade text-dark" id="addRoomModal1" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog" role="document">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="exampleModalLabel">กรอกเลขมิเตอร์ไฟฟ้า</h5>
-                                                            <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <form action="?id_room=<?= $id_room ?>&add_e_id=<?= $row['number_room']; ?>" method="post">
-                                                                <div class="form-group">
-                                                                    <label for="meterNumber">เลขมิเตอร์ไฟฟ้า:</label>
-                                                                    <input type="number" class="form-control" id="meterNumber" name="meterNumber" min="0" max="9999" required oninput="limitInput(this)">
-                                                                </div><br>
-                                                                <center><button type="submit" name="submit" class="btn btn-primary">บันทึกข้อมูล</button></center>
-                                                            </form>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">ปิด</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="card-body">
-                                            <table class="table table-bordered table-striped">
-                                                <thead>
-                                                    <tr>
-                                                        <th>เลขมิเตอร์ไฟฟ้า</th>
-                                                        <th>วันที่บันทึก</th>
-                                                        <th>การจัดการ</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    <?php
-                                                    // ตัวอย่างการ query ข้อมูลมิเตอร์ไฟฟ้า
-                                                    $query5 = "SELECT id_electricity_meter, number_electricity_meter, save_electricity_meter FROM electricity_meter WHERE number_room = $number_room ORDER BY id_electricity_meter DESC LIMIT 6";
+                                                    // Query to get the most recent record from the meter table
+                                                    $query5 = "SELECT * FROM meter WHERE id_room = $id_room ORDER BY id_meter DESC";
                                                     $result5 = $conn->query($query5);
-                                                    while ($row5 = $result5->fetch_assoc()) {
+                                                    $row5 = $result5->fetch_assoc();
+
+                                                    // Convert the database timestamp to 'F Y' format
+                                                    $meterTimestamp = date('F Y', strtotime($row5['meter_timestam']));
+                                                    function thaiDate($date)
+                                                    {
+                                                        $thai_month_arr = array(
+                                                            "มกราคม",
+                                                            "กุมภาพันธ์",
+                                                            "มีนาคม",
+                                                            "เมษายน",
+                                                            "พฤษภาคม",
+                                                            "มิถุนายน",
+                                                            "กรกฎาคม",
+                                                            "สิงหาคม",
+                                                            "กันยายน",
+                                                            "ตุลาคม",
+                                                            "พฤศจิกายน",
+                                                            "ธันวาคม"
+                                                        );
+
+                                                        // แยกส่วนของเดือนและปีจากวันที่ที่ได้รับมา
+                                                        $month = date('n', strtotime($date)); // เอาเฉพาะตัวเลขเดือน (1-12)
+                                                        $year = date('Y', strtotime($date)) + 543; // เปลี่ยนปี ค.ศ. เป็น พ.ศ.
+
+                                                        // คืนค่าเดือนภาษาไทยและปี พ.ศ.
+                                                        return $thai_month_arr[$month - 1] . ' ' . $year;
+                                                    }
+                                                    for ($i = 0; $i < 1; $i++) {
+                                                        // สร้างชื่อเดือนย้อนหลังจากเดือนปัจจุบัน
+                                                        $month = date('F Y', strtotime("-$i month"));
+
+
+
+                                                        // Display PDF icons with links
+                                                        if ($month1 === $meterTimestamp) {
                                                     ?>
+                                                            <a href='../PDF/pdf?email=<?= $row1['email'] ?>&id_room=<?= $row['number_room'] ?>&f_name=<?= $full_name ?>&wc=<?= $water_cost ?>&we=<?= $electricity_cost ?>&cr=<?= $charge_room ?>&total=<?= $total_cost ?>&my=<?= thaiDate($month) ?>&name_ap=<?= $row0['name_apartment'] ?>&wc1=<?= $number_water_meter_second_last ?>&wc2=<?= $number_water_meter_last ?>&wc3=<?= $difference ?>&we1=<?= $number_electricity_meter_second_last ?>&we2=<?= $number_electricity_meter_last ?>&we3=<?= $difference1 ?>&wc4=<?= $row0['w_bath_unit'] ?>&we4=<?= $row0['e_bath_unit'] ?>&comment=<?= $row0['comment']; ?>' target='_blank' class='pdf-icon'>
+                                                                <i class='fas fa-file-pdf'></i> <?= thaiDate($month) ?>
+                                                            </a>
+                                                        <?php
+
+                                                        } else {
+                                                        ?>
+                                                            <a href='' class='pdf-icon'>
+                                                                <i class='fas fa-file-pdf'></i> ไม่สามารถ REPORT ได้
+                                                            </a>
+                                                        <?php
+                                                        }
+                                                        ?>
+
+
+                                                    <?php
+                                                    }
+                                                    ?>
+
+
+                                                    <p class="card-text">- ส่ง mail ใบแจ้งหนี้เดือนปัจจุบัน: </p>
+                                                    <?php
+
+
+                                                    // Compare $month1 with the formatted timestamp
+                                                    if ($month1 === $meterTimestamp) {
+                                                    ?>
+                                                        <a href='../send_email?email=<?= $row1['email'] ?>&id_room=<?= $row['number_room'] ?>&f_name=<?= $full_name ?>&wc=<?= $water_cost ?>&we=<?= $electricity_cost ?>&cr=<?= $charge_room ?>&total=<?= $total_cost ?>' target='_blank' class='mail-icon'>
+                                                            <i class='fas fa-envelope'></i> <?= thaiDate($month1); ?>
+                                                        </a>
+                                                    <?php
+                                                    } else {
+                                                    ?>
+                                                        <a href='' class='mail-icon'>
+                                                            <i class='fas fa-envelope'></i> ไม่สามารถส่งอีเมลได้
+                                                        </a>
+                                                    <?php
+                                                    }
+                                                    ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- ข้อมูลมิเตอร์ -->
+                                    <div class="col-md-12 mb-3">
+                                        <div class="card text-white bg-primary">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <span>ประวัติเลขมิเตอร์</span>
+                                                <?php
+                                                if ($month1 === $meterTimestamp) {
+                                                ?>
+                                                    <button type="button" class="btn btn-danger">ไม่สามารถเพิ่มเลขมิเตอร์ได้</button>
+                                                <?php
+                                                } else {
+                                                ?>
+                                                    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addRoomModal">เพิ่มเลขมิเตอร์</button>
+                                                <?php
+                                                }
+                                                ?>
+
+
+                                                <!-- Modal -->
+                                                <div class="modal fade text-dark" id="addRoomModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog" role="document">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="exampleModalLabel">กรอกเลขมิเตอร์</h5>
+                                                                <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <form action="?id_room=<?= $id_room ?>&add_meter=<?= $row['id_room']; ?>" method="post">
+                                                                    <div class="form-group">
+                                                                        <label for="meterNumber0">เลขมิเตอร์น้ำ:</label>
+                                                                        <input type="number" class="form-control" id="meterNumber0" name="meterNumber0" min="0" max="9999" required oninput="limitInput(this)">
+                                                                    </div><br>
+                                                                    <div class="form-group">
+                                                                        <label for="meterNumber1">เลขมิเตอร์ไฟ:</label>
+                                                                        <input type="number" class="form-control" id="meterNumber1" name="meterNumber1" min="0" max="9999" required oninput="limitInput(this)">
+                                                                    </div><br>
+                                                                    <center><button type="submit" name="submit" class="btn btn-primary">บันทึกข้อมูล</button></center>
+                                                                </form>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">ปิด</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-bordered table-striped">
+                                                    <thead>
                                                         <tr>
-                                                            <td><?= $row5['number_electricity_meter']; ?></td>
-                                                            <td><?= date('d-m-Y H:i:s', strtotime($row5['save_electricity_meter'])); ?></td>
-                                                            <td>
-                                                                <a href="javascript:void(0);" onclick="openEditPopup1('<?= $number_room ?>', '<?= $row5['id_electricity_meter'] ?>', '<?= $row5['number_electricity_meter'] ?>');" class="btn btn-warning btn-sm">แก้ไข</a>
-                                                                <script>
-                                                                    function openEditPopup1(numberRoom, electricityMeterId, number_electricity_meter) {
-                                                                        Swal.fire({
-                                                                            title: 'แก้ไขเลขมิเตอร์ไฟฟ้า',
-                                                                            html: `
-            <form action="?id_room=<?= $id_room ?>&edit_e_id=${electricityMeterId}" method="post">
-                <input type="hidden" name="id_room" value="${numberRoom}">
-                <input type="hidden" name="edit_w_id" value="${electricityMeterId}">
-                <div class="form-group">
-                    <label for="number_electricity_meter">เลขมิเตอร์ไฟฟ้า</label>
-                    <input type="text" id="number_electricity_meter" name="number_electricity_meter" value="${number_electricity_meter}" class="form-control">
-                </div><br>
-                <div class="modal-footer">
-                    <div class="d-flex justify-content-center w-100">
-                        <button type="button" class="btn btn-secondary me-2" onclick="Swal.close()">ยกเลิก</button>
-                        <button type="submit" class="btn btn-primary" name="submit">บันทึก</button>
-                    </div>
-                </div>
-            </form>
-        `,
-                                                                            focusConfirm: false,
-                                                                            showConfirmButton: false,
-                                                                            showCancelButton: false,
-                                                                            showCloseButton: false,
-                                                                        });
-
-                                                                        // ใช้ CSS ของ Swal เพื่อจัดการการจัดวาง
-                                                                        const footer = document.querySelector('.swal2-actions');
-                                                                        if (footer) {
-                                                                            footer.style.display = 'flex';
-                                                                            footer.style.justifyContent = 'center';
-                                                                        }
-                                                                    }
-                                                                </script>
-
-
-                                                                <a href="?id_room=<?= $id_room ?>&del_e_id=<?= $row5['id_electricity_meter'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('ยืนยันการลบข้อมูล?');">ลบ</a>
-                                                            </td>
+                                                            <th>เลขมิเตอร์น้ำ</th>
+                                                            <th>เลขมิเตอร์ไฟ</th>
+                                                            <th>วันที่บันทึก</th>
                                                         </tr>
-                                                    <?php } ?>
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+                                                        // ตัวอย่างการ query ข้อมูลมิเตอร์
+                                                        $query4 = "SELECT * FROM meter WHERE id_room = $id_room ORDER BY id_meter DESC LIMIT 6";
+                                                        $result4 = $conn->query($query4);
+                                                        while ($row4 = $result4->fetch_assoc()) {
+                                                        ?>
+                                                            <tr>
+                                                                <td><?= $row4['number_water_meter']; ?></td>
+                                                                <td><?= $row4['number_electricity_meter']; ?></td>
+                                                                <td><?= date('d-m-Y H:i:s', strtotime($row4['meter_timestam'])); ?></td>
+
+                                                            </tr>
+
+                                                        <?php } ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- ข้อมูลค่าเช่าย้อนหลัง -->
+                                    <div class="col-md-12 mb-3">
+                                        <div class="card text-white bg-info">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <span>ค่าเช่าย้อนหลัง</span>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-bordered table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>เดือน ปี</th>
+                                                            <th>ค่าห้อง</th>
+                                                            <th>ค่าน้ำ</th>
+                                                            <th>ค่าไฟ</th>
+                                                            <th>สุทธิ</th>
+                                                            <th>สถานะ</th>
+
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php
+
+
+                                                        $sql = "SELECT r.id_rental, r.rental_timestam, r.water_bill, r.electricity_bill, r.net, r.step, rm.charge_room, r.slip 
+FROM rental r 
+JOIN room rm ON r.id_room = rm.id_room 
+WHERE r.id_room = $id_room";
+
+                                                        $result = mysqli_query($conn, $sql);
+
+                                                        if (mysqli_num_rows($result) > 0) {
+                                                            while ($row = mysqli_fetch_assoc($result)) {
+                                                                $rentalDate = date('F Y', strtotime($row['rental_timestam'])); // แสดงเดือนและปี
+                                                                $chargeRoom = $row['charge_room'];
+                                                                $waterBill = $row['water_bill'];
+                                                                $electricityBill = $row['electricity_bill'];
+                                                                $net = $row['net'];
+                                                                echo $slip = $row['slip']; // Retrieve the 'slip' field
+                                                                $step = '';
+                                                                switch ($row['step']) {
+                                                                    case 0:
+                                                                        $step = 'รอชำระ';
+                                                                        break;
+                                                                    case 1:
+                                                                        $step = 'รอตรวจสอบ';
+                                                                        break;
+                                                                    case 2:
+                                                                        $step = 'ชำระแล้ว';
+                                                                        break;
+                                                                    default:
+                                                                        $step = 'สถานะไม่รู้จัก'; // Default message for unknown status
+                                                                        break;
+                                                                }
+                                                                $idRental = $row['id_rental'];
+                                                        ?>
+                                                                <tr>
+                                                                    <td><?= $rentalDate; ?></td>
+                                                                    <td><?= number_format($chargeRoom, 2); ?></td>
+                                                                    <td><?= number_format($waterBill, 2); ?></td>
+                                                                    <td><?= number_format($electricityBill, 2); ?></td>
+                                                                    <td><?= number_format($net, 2); ?></td>
+
+                                                                    <td>
+                                                                        <?php if ($step == "รอชำระ") { ?>
+                                                                            <button class="btn btn-danger" disabled>รอชำระ</button>
+                                                                        <?php } else if ($step == "รอตรวจสอบ") { ?>
+
+
+                                                                            <!-- ปุ่ม popup ตรวจสอบสลิป -->
+                                                                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#paymentModal<?= $idRental; ?>">
+                                                                                ตรวจสอบสลิป
+                                                                            </button>
+
+                                                                            <!-- Modal ฟอร์มตรวจสอบสลิป -->
+                                                                            <div class="modal fade" id="paymentModal<?= $idRental; ?>" tabindex="-1" aria-labelledby="paymentModalLabel<?= $idRental; ?>" aria-hidden="true">
+                                                                                <div class="modal-dialog">
+                                                                                    <div class="modal-content">
+                                                                                        <div class="modal-header">
+                                                                                            <h5 class="modal-title" id="paymentModalLabel<?= $idRental; ?>">ตรวจสอบสลิปชำระเงิน</h5>
+                                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                                        </div>
+                                                                                        <form action="?id_room=<?=$id_room?>&upload_payment=true" method="POST" enctype="multipart/form-data">
+                                                                                            <div class="modal-body">
+                                                                                                <input type="hidden" name="id_rental" value="<?= $idRental; ?>">
+                                                                                                <div class="mb-3">
+                                                                                                    <!-- Add your image here -->
+                                                                                                    <img src="../img/<?= htmlspecialchars($slip, ENT_QUOTES, 'UTF-8'); ?>" alt="Receipt slip for rental payment" class="img-fluid">
+
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="modal-footer">
+                                                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                                                                                                <button type="submit" class="btn btn-primary">ตรวจสอบแล้ว</button>
+                                                                                            </div>
+                                                                                        </form>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        <?php } else if ($step == "ชำระแล้ว") { ?>
+                                                                            <button class="btn btn-success" disabled>ชำระแล้ว</button>
+                                                                        <?php } ?>
+                                                                    </td>
+                                                                </tr>
+                                                        <?php
+                                                            }
+                                                        } else {
+                                                            echo "<tr><td colspan='6'>ไม่มีข้อมูล</td></tr>";
+                                                        }
+
+                                                        // ปิดการเชื่อมต่อฐานข้อมูล
+
+                                                        ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
-                        </div>
 
-                    <?php
-                    }
-                    ?>
+                        <?php
+                        }
+                        ?>
 
+                    </div>
                 </div>
             </div>
-        </div>
-        <script>
-            function limitInput(input) {
-                if (input.value.length > 4) {
-                    input.value = input.value.slice(0, 4);
+            <script>
+                function limitInput(input) {
+                    if (input.value.length > 4) {
+                        input.value = input.value.slice(0, 4);
+                    }
                 }
-            }
-        </script>
+            </script>
+
+        <?php
+    } else {
+        ?>
+            <script>
+                setTimeout(function() {
+                    Swal.fire({
+                        title: '<div class="t1">ไม่สามารถจัดการได้เนื่องจากยังเป็นห้องว่าง</div>',
+                        icon: 'error',
+                        confirmButtonText: '<div class="text t1">ตกลง</div>',
+                        allowOutsideClick: false, // Disable clicking outside popup to close
+                        allowEscapeKey: false, // Disable ESC key to close
+                        allowEnterKey: false // Disable Enter key to close
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "manager";
+                        }
+                    });
+                }, 100); // Adjust timeout duration if needed
+            </script>
+        <?php } ?>
         <!-- Bootstrap 5 JS (Optional, for features like modals or tooltips) -->
         <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>

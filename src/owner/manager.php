@@ -70,8 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $room_code = $_POST['room_code'];
     $water_meter = $_POST['water_meter'];
     $electric_meter = $_POST['electric_meter'];
-    $tenant = $_POST['tenant'];
-    $room_status = $_POST['room_status'];
     $detail_room = $_POST['detail_room'];
     $charge_room = $_POST['charge_room'];
 
@@ -81,26 +79,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn->begin_transaction();
 
     try {
-        // Insert ข้อมูลเข้าตาราง water_meter
-        $sql1 = "INSERT INTO water_meter (number_room, number_water_meter, save_water_meter) VALUES (?, ?, NOW())";
-        $stmt1 = $conn->prepare($sql1);
-        $stmt1->bind_param("si", $room_code, $water_meter);
-        $stmt1->execute();
-        $id_water_meter = $conn->insert_id;  // ดึง id ของ water_meter ล่าสุด
-
-        // Insert ข้อมูลเข้าตาราง electricity_meter
-        $sql2 = "INSERT INTO electricity_meter (number_room, number_electricity_meter, save_electricity_meter) VALUES (?, ?, NOW())";
-        $stmt2 = $conn->prepare($sql2);
-        $stmt2->bind_param("si", $room_code, $electric_meter);
-        $stmt2->execute();
-        $id_electricity_meter = $conn->insert_id;  // ดึง id ของ electricity_meter ล่าสุด
-
-        // Insert ข้อมูลเข้าตาราง room โดยใช้ FK จาก id_water_meter และ id_electricity_meter ที่เพิ่งได้มา
-        $sql3 = "INSERT INTO room (number_room, id_electricity_meter, id_water_meter, id_tenant, status_room, detail_room, charge_room) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // Insert ข้อมูลเข้าตาราง room
+        $sql3 = "INSERT INTO room (number_room, detail_room, charge_room) VALUES (?, ?, ?)";
         $stmt3 = $conn->prepare($sql3);
-        $stmt3->bind_param("siiissi", $room_code, $id_electricity_meter, $id_water_meter, $tenant, $room_status, $detail_room, $charge_room);
+        $stmt3->bind_param("ssi", $room_code, $detail_room, $charge_room);
         $stmt3->execute();
+
+        // Get the last inserted ID from room
+        $id_room = $conn->insert_id;
+
+        // Insert ข้อมูลเข้าตาราง meter โดยใช้ id_room ที่ได้จากการ insert room
+        $sql1 = "INSERT INTO meter (id_room, number_water_meter, number_electricity_meter, meter_timestam) VALUES (?, ?, ?, NOW())";
+        $stmt1 = $conn->prepare($sql1);
+        $stmt1->bind_param("iss", $id_room, $water_meter, $electric_meter);
+        $stmt1->execute();
 
         // Commit transaction
         $conn->commit();
@@ -180,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="modal-header">
                                 <h5 class="modal-title" id="addRoomModalLabel">เพิ่มข้อมูลห้องพัก</h5>
                                 <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
-                             
+
                             </div>
                             <div class="modal-body">
                                 <form id="addRoomForm" method="POST" action="">
@@ -195,37 +187,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <div class="form-group">
                                         <label for="electric_meter">เลขมิเตอร์ไฟล่าสุด</label>
                                         <input type="number" class="form-control" id="electric_meter" name="electric_meter" min="0" max="9999" required oninput="limitInput(this)">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="tenant">ผู้เช่า</label>
-                                        <select class="form-control" id="tenant" name="tenant" required>
-                                            <option value="">เลือกผู้เช่า</option>
-                                            <?php
-                                            // ดึงข้อมูลผู้เช่าจากฐานข้อมูล
-                                            $sql1 = "SELECT * FROM tenant";
-                                            $result1 = $conn->query($sql1);
-
-                                            // ตรวจสอบว่ามีผลลัพธ์หรือไม่
-                                            if ($result1->num_rows > 0) {
-                                                // Loop ข้อมูลผู้เช่า
-                                                while ($row1 = $result1->fetch_assoc()) {
-                                                    // สร้างตัวเลือกโดยรวมชื่อและเบอร์โทรศัพท์
-                                                    $full_name = $row1['first_name'] . ' ' . $row1['last_name'] . ' ( ' . $row1['tel'] . ' )';
-                                                    echo '<option value="' . $row1['id_tenant'] . '">' . $full_name . '</option>';
-                                                }
-                                            } else {
-                                                echo '<option value="">ไม่มีข้อมูลผู้เช่า</option>';
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="room_status">สถานะห้อง</label>
-                                        <select class="form-control" id="room_status" name="room_status" required>
-                                            <option value="ว่าง">ว่าง</option>
-                                            <option value="ไม่ว่าง">ไม่ว่าง</option>
-                                            <option value="กำลังเช่าอยู่">กำลังเช่าอยู่</option>
-                                        </select>
                                     </div>
                                     <div class="form-group">
                                         <label for="editDetailRoom">ประเภทห้อง</label>
@@ -252,10 +213,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 <div class="row">
                     <?php
-                    // ดึงข้อมูลทั้งหมดจากตาราง room
-                    $sql = "SELECT * FROM room";
+                    // ดึงข้อมูลทั้งหมดจากตาราง room และตรวจสอบสถานะการเช่าจากตาราง tenant
+                    $sql = "
+    SELECT r.id_room, r.number_room, 
+           IF(t.id_room IS NULL, 'ห้องว่าง', 'กำลังเช่าอยู่') AS status
+    FROM room r
+    LEFT JOIN tenant t ON r.id_room = t.id_room
+";
                     $result = $conn->query($sql);
-
                     if ($result->num_rows > 0) {
                         $count = 0;
                         // วนลูปแสดงการ์ดห้องแต่ละห้อง
@@ -269,8 +234,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="col-md-4">
                                 <div class="card text-center mb-4">
                                     <div class="card-body">
-                                        <h5 class="card-title">ห้อง <?= $row['number_room']; ?></h5> <!-- ใช้ฟิลด์ที่เหมาะสม -->
-                                        <p class="card-text">สถานะ: <?= $row['status_room']; ?></p> <!-- ใช้ฟิลด์สถานะ -->
+                                        <h5 class="card-title">ห้อง <?= $row['number_room']; ?></h5>
+                                        <p class="card-text">สถานะ: <?= htmlspecialchars($row['status']); ?></p>
                                         <a href="detail_room?id_room=<?= $row['id_room']; ?>" class="btn btn-primary">จัดการข้อมูล</a>
                                         <a href="#" class="btn btn-danger" onclick="confirmDelete(<?= $row['id_room']; ?>)">ลบห้อง</a>
 
@@ -318,12 +283,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
     <script>
-            function limitInput(input) {
-                if (input.value.length > 4) {
-                    input.value = input.value.slice(0, 4);
-                }
+        function limitInput(input) {
+            if (input.value.length > 4) {
+                input.value = input.value.slice(0, 4);
             }
-        </script>
+        }
+    </script>
     <!-- Bootstrap 5 JS (Optional, for features like modals or tooltips) -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>

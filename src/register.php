@@ -10,7 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tel = $_POST['tel'];
     $email = $_POST['email'];
     $password = $_POST['password'];
-    $user_type = $_POST['user_type'];
+    $user_type = "tenant";
 
 
     // เข้ารหัสรหัสผ่านก่อนเก็บลงฐานข้อมูล
@@ -66,57 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt->close();
         $conn->close();
-    } else if ($user_type == "owner") {
-        // SQL สำหรับเพิ่มข้อมูลผู้ใช้ลงฐานข้อมูล
-        $sql = "INSERT INTO owner (first_name, last_name, tel, email, password) VALUES (?, ?, ?, ?, ?)";
-
-        // ใช้ Prepared Statement เพื่อป้องกัน SQL Injection
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssss", $first_name, $last_name, $tel, $email, $hashed_password);
-
-        if ($stmt->execute()) {
-        ?>
-            <script>
-                setTimeout(function() {
-                    Swal.fire({
-                        title: '<div class="t1">สมัครใช้งานสำเร็จ</div>',
-                        icon: 'success',
-                        confirmButtonText: '<div class="text t1">ตกลง</div>',
-                        allowOutsideClick: false, // Disable clicking outside popup to close
-                        allowEscapeKey: false, // Disable ESC key to close
-                        allowEnterKey: false // Disable Enter key to close
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = "index";
-                        }
-                    });
-                }, 1000); // Adjust timeout duration if needed
-            </script>
-        <?php
-        } else {
-        ?>
-            <script>
-                setTimeout(function() {
-                    Swal.fire({
-                        title: '<div class="t1">เกิดข้อผิดพลาด</div>',
-                        icon: 'error',
-                        confirmButtonText: '<div class="text t1">ตกลง</div>',
-                        allowOutsideClick: false, // Disable clicking outside popup to close
-                        allowEscapeKey: false, // Disable ESC key to close
-                        allowEnterKey: false // Disable Enter key to close
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = "index";
-                        }
-                    });
-                }, 1000); // Adjust timeout duration if needed
-            </script>
-<?php
-        }
-
-        $stmt->close();
-        $conn->close();
-    }
+    } 
 }
 ?>
 <!DOCTYPE html>
@@ -145,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <h3 class="text-center mb-4">สมัครใช้งาน</h3>
+                        <h3 class="text-center mb-4">สมัครใช้งานสำหรับผู้เช่า</h3>
                         <form action="register.php" method="POST">
                             <div class="mb-3">
                                 <label for="first_name" class="form-label">ชื่อ</label>
@@ -169,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             </div>
 
                             <!-- เพิ่มตัวเลือกประเภทผู้ใช้ -->
-                            <div class="mb-3">
+                            <!-- <div class="mb-3">
                                 <label class="form-label">ประเภทผู้ใช้งาน</label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="radio" name="user_type" id="tenant" value="tenant" required>
@@ -183,7 +133,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                         เจ้าของหอพัก
                                     </label>
                                 </div>
-                            </div>
+                            </div> -->
 
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">Register</button>

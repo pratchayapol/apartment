@@ -26,7 +26,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 header("Location: owner/index"); // ไปยังหน้าหลังจาก login สำเร็จ
                 exit();
             } else {
-                echo "รหัสผ่านไม่ถูกต้อง";
+?>
+                <script>
+                    setTimeout(function() {
+                        Swal.fire({
+                            title: '<div class="t1">รหัสผ่านไม่ถูกต้อง</div>',
+                            icon: 'question',
+                            confirmButtonText: '<div class="text t1">ตกลง</div>',
+                            allowOutsideClick: false, // Disable clicking outside popup to close
+                            allowEscapeKey: false, // Disable ESC key to close
+                            allowEnterKey: false // Disable Enter key to close
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "index";
+                            }
+                        });
+                    }, 100); // Adjust timeout duration if needed
+                </script>
+                <?php
             }
         } else {
             // ตรวจสอบข้อมูลจากตาราง tenant
@@ -40,23 +57,97 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // มีข้อมูลในตาราง tenant
                 $user = $result->fetch_assoc();
                 if (password_verify($password, $user['password'])) {
-                    // ตั้งค่า session และเปลี่ยนเส้นทาง
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['user_type'] = 'tenant'; // กำหนดประเภทผู้ใช้
-                    header("Location: tenant/index"); // ไปยังหน้าหลังจาก login สำเร็จ
-                    exit();
+                    if ($user['id_room'] == NULL) {
+                ?>
+                        <script>
+                            setTimeout(function() {
+                                Swal.fire({
+                                    html: '<div class="t1"><h3>ไม่สามารถเข้าสู่ระบบได้</h3> <br><h5>เนื่องจากคุณไม่มีข้อมูลห้องเช่า</h5></div>',
+                                    icon: 'error',
+                                    confirmButtonText: '<div class="text t1">ตกลง</div>',
+                                    allowOutsideClick: false, // Disable clicking outside popup to close
+                                    allowEscapeKey: false, // Disable ESC key to close
+                                    allowEnterKey: false // Disable Enter key to close
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = "index";
+                                    }
+                                });
+                            }, 100); // Adjust timeout duration if needed
+                        </script>
+                    <?php
+
+                    } else {
+                        // ตั้งค่า session และเปลี่ยนเส้นทาง
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['id_room'] = $user['id_room'];
+                        $_SESSION['user_type'] = 'tenant'; // กำหนดประเภทผู้ใช้
+                        header("Location: tenant/index"); // ไปยังหน้าหลังจาก login สำเร็จ
+                        exit();
+                    }
                 } else {
-                    echo "รหัสผ่านไม่ถูกต้อง";
+                    ?>
+                    <script>
+                        setTimeout(function() {
+                            Swal.fire({
+                                title: '<div class="t1">รหัสผ่านไม่ถูกต้อง</div>',
+                                icon: 'question',
+                                confirmButtonText: '<div class="text t1">ตกลง</div>',
+                                allowOutsideClick: false, // Disable clicking outside popup to close
+                                allowEscapeKey: false, // Disable ESC key to close
+                                allowEnterKey: false // Disable Enter key to close
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    window.location.href = "index";
+                                }
+                            });
+                        }, 100); // Adjust timeout duration if needed
+                    </script>
+                <?php
                 }
             } else {
-                echo "ไม่พบผู้ใช้";
+                ?>
+                <script>
+                    setTimeout(function() {
+                        Swal.fire({
+                            title: '<div class="t1">ไม่พบบัญชีผู้ใช้งาน</div>',
+                            icon: 'error',
+                            confirmButtonText: '<div class="text t1">ตกลง</div>',
+                            allowOutsideClick: false, // Disable clicking outside popup to close
+                            allowEscapeKey: false, // Disable ESC key to close
+                            allowEnterKey: false // Disable Enter key to close
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = "index";
+                            }
+                        });
+                    }, 100); // Adjust timeout duration if needed
+                </script>
+        <?php
             }
         }
 
         $stmt->close();
         $conn->close();
     } else {
-        echo "กรุณากรอกอีเมลและรหัสผ่าน";
+        ?>
+        <script>
+            setTimeout(function() {
+                Swal.fire({
+                    title: '<div class="t1">กรุณากรอกอีเมลและรหัสผ่าน</div>',
+                    icon: 'error',
+                    confirmButtonText: '<div class="text t1">ตกลง</div>',
+                    allowOutsideClick: false, // Disable clicking outside popup to close
+                    allowEscapeKey: false, // Disable ESC key to close
+                    allowEnterKey: false // Disable Enter key to close
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = "index";
+                    }
+                });
+            }, 100); // Adjust timeout duration if needed
+        </script>
+<?php
     }
 }
 

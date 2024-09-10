@@ -63,16 +63,17 @@ try {
     $mail->isHTML(true);
     $mail->Subject = 'ใบแจ้งหนี้ของหอพัก ห้อง ' . $id_room;
     $mail->Body    = 'ประจำเดือน ' . thaiDate($month1) . '<br>
-    ค่าห้อง <b>' . $cr . ' </b>บาท<br>
-    ค่าน้ำ <b>' . $wc . ' </b>บาท<br>
-    ค่าไฟ <b>' . $we . ' </b>บาท<br>
-    รวม <b>' . $total . ' </b>บาท<br>
+    ค่าห้อง <b>' . number_format($cr) . ' </b>บาท<br>
+    ค่าน้ำ <b>' . number_format($wc) . ' </b>บาท<br>
+    ค่าไฟ <b>' . number_format($we) . ' </b>บาท<br>
+    รวม <b>' . number_format($total) . ' </b>บาท<br>
+
     <b> กรุณาชำระเงินภายในวันที่ 10 ' . thaiDate($month1) . '</b><br>';
     $mail->AltBody = 'This is the body in plain text for non-HTML mail clients';
 
     $mail->send();
     echo '<script type="text/javascript">
-            alert("Message has been sent");
+            alert("ส่งอีเมลสำเร็จ");
             window.close();
           </script>';
 } catch (Exception $e) {

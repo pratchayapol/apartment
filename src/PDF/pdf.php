@@ -23,6 +23,8 @@ if (isset($_GET['email'])) {
     $we2 = $_GET['we2']; //เลขไฟล่าสุด
     $we3 = $_GET['we3']; //ไฟที่ใช้ไป
     $we4 = $_GET['we4']; //ไฟ/หน่วย
+
+    $comment = $_GET['comment']; //comment
 }
 
 
@@ -33,25 +35,25 @@ $pdf->Image('bg.jpg', 0, 0, 210, 297);
 $pdf->SetXY(190, 0);
 
 //ประจำเดือน
-$pdf->SetY(45);
+$pdf->SetY(43);
 $pdf->SetX(85);
 $pdf->SetFont('sara', '', 24);
 $pdf->Cell(40, 2, iconv('utf-8', 'cp874', $my), 0, 1, 'C');
 
 //ชือหอพัก
-$pdf->SetY(56);
+$pdf->SetY(57.5);
 $pdf->SetX(45);
 $pdf->SetFont('sara', '', 18);
 $pdf->Cell(40, 2, iconv('utf-8', 'cp874', $name_ap), 0, 1, 'L');
 
 //เลขห้อง
-$pdf->SetY(56);
+$pdf->SetY(57.5);
 $pdf->SetX(135);
 $pdf->SetFont('sara', '', 18);
 $pdf->Cell(40, 2, iconv('utf-8', 'cp874', $id_room), 0, 1, 'L');
 
 //ชื่อผู้เช่า
-$pdf->SetY(68);
+$pdf->SetY(69.5);
 $pdf->SetX(45);
 $pdf->SetFont('sara', '', 18);
 $pdf->Cell(40, 2, iconv('utf-8', 'cp874', $f_name), 0, 1, 'L');
@@ -60,13 +62,13 @@ $pdf->Cell(40, 2, iconv('utf-8', 'cp874', $f_name), 0, 1, 'L');
 $pdf->SetY(88.5);
 $pdf->SetX(151.5);
 $pdf->SetFont('sara', '', 18);
-$pdf->Cell(40, 2, iconv('utf-8', 'cp874', $cr), 0, 1, 'C');
+$pdf->Cell(40, 2, iconv('utf-8', 'cp874', number_format($cr)), 0, 1, 'C');
 
 //ค่าน้ำ
 $pdf->SetY(95.5);
 $pdf->SetX(151.5);
 $pdf->SetFont('sara', '', 18);
-$pdf->Cell(40, 2, iconv('utf-8', 'cp874', $wc), 0, 1, 'C');
+$pdf->Cell(40, 2, iconv('utf-8', 'cp874', number_format($wc)), 0, 1, 'C');
 
 //เลขน้ำก่อนหน้า
 $pdf->SetY(95.5);
@@ -97,7 +99,7 @@ $pdf->Cell(40, 2, iconv('utf-8', 'cp874', $wc4), 0, 1, 'C');
 $pdf->SetY(103.5);
 $pdf->SetX(151.5);
 $pdf->SetFont('sara', '', 18);
-$pdf->Cell(40, 2, iconv('utf-8', 'cp874', $we), 0, 1, 'C');
+$pdf->Cell(40, 2, iconv('utf-8', 'cp874', number_format($we)), 0, 1, 'C');
 
 //เลขไฟก่อนหน้า
 $pdf->SetY(103.5);
@@ -127,6 +129,12 @@ $pdf->Cell(40, 2, iconv('utf-8', 'cp874', $we4), 0, 1, 'C');
 $pdf->SetY(111.5);
 $pdf->SetX(151.5);
 $pdf->SetFont('sara', '', 18);
-$pdf->Cell(40, 2, iconv('utf-8', 'cp874', $total), 0, 1, 'C');
+$pdf->Cell(40, 2, iconv('utf-8', 'cp874', number_format($total)), 0, 1, 'C');
+
+//comment
+$pdf->SetY(118.7);
+$pdf->SetX(27);
+$pdf->SetFont('sara', '', 18);
+$pdf->Cell(40, 2, iconv('utf-8', 'cp874', $comment), 0, 1, 'L');
 
 $pdf->Output();
