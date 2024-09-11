@@ -96,70 +96,6 @@ if (isset($_POST['submit1'])) {
     }
 }
 
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $number_room = $_POST['number_room'] ?? '';
-    $status_room = $_POST['status_room'] ?? '';
-    $detail_room = $_POST['detail_room'] ?? '';
-    $charge_room = $_POST['charge_room'] ?? '';
-
-
-    // ตรวจสอบว่าห้องมีอยู่หรือไม่
-    $sql_check = "SELECT * FROM room WHERE number_room = '$number_room'";
-    $result = $conn->query($sql_check);
-
-    if ($result->num_rows > 0) {
-        // ถ้าห้องมีอยู่แล้ว อัปเดตข้อมูลห้อง
-        $sql_update = "UPDATE room 
-                   SET status_room = '$status_room', 
-                       detail_room = '$detail_room', 
-                       charge_room = '$charge_room' 
-                   WHERE number_room = '$number_room'";
-
-        if ($conn->query($sql_update) === TRUE) {
-        } else {
-            echo "Error updating record: " . $conn->error;
-        }
-    }
-}
-
-if (isset($_GET['del_id'])) {
-    $id_tenant = $_GET['del_id'];
-
-    $sql_delete = "DELETE FROM tenant WHERE id_tenant = ?";
-
-    // ใช้ prepared statement เพื่อความปลอดภัย
-    $stmt = $conn->prepare($sql_delete);
-    $stmt->bind_param("i", $id_tenant); // ผูกตัวแปร id_tenant กับ SQL
-
-    // ตรวจสอบว่าการลบข้อมูลสำเร็จหรือไม่
-    if ($stmt->execute()) {
-    ?>
-        <script>
-            setTimeout(function() {
-                Swal.fire({
-                    title: '<div class="t1">ลบบัญชีสำเร็จ</div>',
-                    icon: 'success',
-                    confirmButtonText: '<div class="text t1">ตกลง</div>',
-                    allowOutsideClick: false, // Disable clicking outside popup to close
-                    allowEscapeKey: false, // Disable ESC key to close
-                    allowEnterKey: false // Disable Enter key to close
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = "setting";
-
-                    }
-                });
-            }, 100); // Adjust timeout duration if needed
-        </script>
-<?php
-    } else {
-        echo "เกิดข้อผิดพลาดในการลบข้อมูล: " . $stmt->error;
-    }
-
-    // ปิดการเชื่อมต่อ
-    $stmt->close();
-}
 ?>
 <!DOCTYPE html>
 <html lang="th">
@@ -216,9 +152,6 @@ if (isset($_GET['del_id'])) {
 
                 <div class="container mt-4">
                     <div class="row">
-
-
-
 
                         <!-- ข้อมูลหอพัก -->
                         <div class="col-md-12 mb-3">

@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $user = $result->fetch_assoc();
             if (password_verify($password, $user['password'])) {
                 // ตั้งค่า session และเปลี่ยนเส้นทาง
-                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['user_id'] = $user['id_owner'];
                 $_SESSION['user_type'] = 'owner'; // กำหนดประเภทผู้ใช้
                 header("Location: owner/index"); // ไปยังหน้าหลังจาก login สำเร็จ
                 exit();
@@ -79,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     } else {
                         // ตั้งค่า session และเปลี่ยนเส้นทาง
-                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['user_id'] = $user['id_tenant'];
                         $_SESSION['id_room'] = $user['id_room'];
                         $_SESSION['user_type'] = 'tenant'; // กำหนดประเภทผู้ใช้
                         header("Location: tenant/index"); // ไปยังหน้าหลังจาก login สำเร็จ
@@ -129,25 +129,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $stmt->close();
         $conn->close();
-    } else {
-        ?>
-        <script>
-            setTimeout(function() {
-                Swal.fire({
-                    title: '<div class="t1">กรุณากรอกอีเมลและรหัสผ่าน</div>',
-                    icon: 'error',
-                    confirmButtonText: '<div class="text t1">ตกลง</div>',
-                    allowOutsideClick: false, // Disable clicking outside popup to close
-                    allowEscapeKey: false, // Disable ESC key to close
-                    allowEnterKey: false // Disable Enter key to close
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = "index";
-                    }
-                });
-            }, 100); // Adjust timeout duration if needed
-        </script>
-<?php
     }
 }
 

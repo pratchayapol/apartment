@@ -163,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="modal-body">
                                 <form id="addRoomForm" method="POST" action="">
                                     <div class="form-group">
-                                        <label for="room_code">รหัสห้อง</label>
+                                        <label for="room_code">เลขห้อง</label>
                                         <input type="text" class="form-control" id="room_code" name="room_code" required>
                                     </div>
                                     <div class="form-group">
