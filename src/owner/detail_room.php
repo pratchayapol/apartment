@@ -2,8 +2,8 @@
 session_start();
 include "../config_db.php";
 // ปิดการแสดงข้อผิดพลาด
-// error_reporting(0);
-// ini_set('display_errors', 0);
+error_reporting(0);
+ini_set('display_errors', 0);
 if (isset($_GET['id_room'])) {
     $id_room = $_GET['id_room'];
 }
@@ -183,8 +183,7 @@ if (isset($_GET['add_meter'])) {
                 echo "เกิดข้อผิดพลาด: " . $stmt->error;
             }
 
-            // ปิด statement
-            $stmt->close();
+
         } else {
             echo "ไม่สามารถบันทึกข้อมูลลงตาราง rental ได้ เนื่องจากข้อมูลไม่ครบถ้วน";
         }
@@ -581,7 +580,7 @@ WHERE r.id_room = $id_room";
                                                                 $waterBill = $row['water_bill'];
                                                                 $electricityBill = $row['electricity_bill'];
                                                                 $net = $row['net'];
-                                                                echo $slip = $row['slip']; // Retrieve the 'slip' field
+                                                                $slip = $row['slip']; // Retrieve the 'slip' field
                                                                 $step = '';
                                                                 switch ($row['step']) {
                                                                     case 0:

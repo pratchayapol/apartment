@@ -13,7 +13,7 @@ $sql_6_months = "
         SUM(electricity_bill) AS total_electricity_bill,
         SUM(net) AS total_net
     FROM rental
-    WHERE rental_timestam BETWEEN NOW() - INTERVAL 6 MONTH AND NOW()
+    WHERE rental_timestam BETWEEN NOW() - INTERVAL 5 MONTH AND NOW()
     GROUP BY DATE_FORMAT(rental_timestam, '%Y-%m')
     ORDER BY month
 ";

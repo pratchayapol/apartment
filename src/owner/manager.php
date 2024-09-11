@@ -14,18 +14,6 @@ if (isset($_GET['del_id_room'])) {
     $conn->begin_transaction();
 
     try {
-        // ลบข้อมูลจากตาราง water_meter โดยใช้ id_room
-        $sql1 = "DELETE FROM water_meter WHERE number_room = ?";
-        $stmt1 = $conn->prepare($sql1);
-        $stmt1->bind_param("i", $number_room);
-        $stmt1->execute();
-
-        // ลบข้อมูลจากตาราง electricity_meter โดยใช้ id_room
-        $sql2 = "DELETE FROM electricity_meter WHERE number_room = ?";
-        $stmt2 = $conn->prepare($sql2);
-        $stmt2->bind_param("i", $number_room);
-        $stmt2->execute();
-
         // ลบข้อมูลจากตาราง room
         $sql3 = "DELETE FROM room WHERE id_room = ?";
         $stmt3 = $conn->prepare($sql3);
@@ -58,8 +46,7 @@ if (isset($_GET['del_id_room'])) {
         echo "เกิดข้อผิดพลาดในการลบข้อมูล: " . $e->getMessage();
     }
 
-    // ปิดการเชื่อมต่อฐานข้อมูล
-    $conn->close();
+
 }
 
 
@@ -120,8 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "เกิดข้อผิดพลาด: " . $e->getMessage();
     }
 
-    // ปิดการเชื่อมต่อฐานข้อมูล
-    $conn->close();
+
 }
 
 ?>
