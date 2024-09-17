@@ -10,10 +10,10 @@
                         <a class="nav-link active" aria-current="page" href="index">หน้าหลัก</a>
                     </li>
                     
-                    <!-- <li class="nav-item">
-                        <a class="nav-link" href="manager">การจัดการห้อง</a>
-                    </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="report">รายงาน</a>
+                    </li>
+                    <!-- <li class="nav-item">
                         <a class="nav-link" href="approve_tenant">อนุมัติผู้เช่า</a>
                     </li>
                     <li class="nav-item">
